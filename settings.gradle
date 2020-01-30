@@ -1,0 +1,2 @@
+rootProject.name='picture-timeline-android'
+include ':app'
