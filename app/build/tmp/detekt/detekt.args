@@ -1,0 +1,10 @@
+--input
+/Users/claucookie/Documents/repos/picture-timeline-android/app/src/main/java/dev/claucookielabs/picstimeline/MainActivity.kt
+--config
+/Users/claucookie/Documents/repos/picture-timeline-android/default-detekt-config.yml
+--report
+xml:/Users/claucookie/Documents/repos/picture-timeline-android/app/build/reports/detekt/detekt.xml
+--report
+html:/Users/claucookie/Documents/repos/picture-timeline-android/app/build/reports/detekt/detekt.html
+--report
+txt:/Users/claucookie/Documents/repos/picture-timeline-android/app/build/reports/detekt/detekt.txt
