@@ -5,10 +5,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
+import dev.claucookielabs.picstimeline.domain.GetPictureRequest
+import dev.claucookielabs.picstimeline.domain.ResultWrapper
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(val getPictureByLocation: GetPictureByLocation) : ViewModel() {
     private val _image = MutableLiveData<Image>()
     val image: LiveData<Image>
         get() = _image
@@ -20,11 +23,19 @@ class MainViewModel : ViewModel() {
     fun startTracking() {
         _tracking.value = true
         viewModelScope.launch {
-            _image.value = Image(
-                "https://farm6.staticflickr.com/5824/20548482625_1331124660_b.jpg"
-            )
+            val result = getPictureByLocation.execute((GetPictureRequest(10.0, 11.0)))
+            when (result) {
+                is ResultWrapper.Success -> _image.value = result.value
+                is ResultWrapper.GenericError -> {
+                    // Show Error view
+                    _tracking.value = false
+                }
+                is ResultWrapper.NetworkError -> {
+                    // Show Network Error view
+                    _tracking.value = false
+                }
+            }
         }
-        _tracking.value = false
     }
 
     fun stopTracking() {

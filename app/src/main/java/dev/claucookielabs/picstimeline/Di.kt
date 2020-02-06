@@ -1,5 +1,6 @@
 package dev.claucookielabs.picstimeline
 
+import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
 import dev.claucookielabs.picstimeline.presentation.MainActivity
 import dev.claucookielabs.picstimeline.presentation.MainViewModel
 import org.koin.android.ext.koin.androidContext
@@ -20,6 +21,7 @@ fun App.initKoin() {
 
 private val scopedModules = module {
     scope(named<MainActivity>()) {
-        viewModel { MainViewModel() }
+        viewModel { MainViewModel(get()) }
+        scoped { GetPictureByLocation() }
     }
 }
