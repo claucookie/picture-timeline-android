@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="viewmodel"
             type="dev.claucookielabs.picstimeline.presentation.MainViewModel" />
@@ -17,8 +18,18 @@
             android:id="@+id/pictures_rv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:addImage="@{viewmodel.image}"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_view_picture" />
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tracking="@{viewmodel.tracking}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

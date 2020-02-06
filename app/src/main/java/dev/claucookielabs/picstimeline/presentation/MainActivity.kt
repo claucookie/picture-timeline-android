@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.databinding.ActivityMainBinding
+import dev.claucookielabs.picstimeline.presentation.ui.ImagesAdapter
 import org.koin.androidx.scope.currentScope
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         binding.apply {
             viewmodel = mainViewModel
             lifecycleOwner = this@MainActivity
+            picturesRv.adapter = ImagesAdapter()
         }
     }
 
