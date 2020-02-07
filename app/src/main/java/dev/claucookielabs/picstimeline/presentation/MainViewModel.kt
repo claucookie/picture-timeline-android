@@ -24,16 +24,20 @@ class MainViewModel(val getPictureByLocation: GetPictureByLocation) : ViewModel(
         _tracking.value = true
         viewModelScope.launch {
             val result = getPictureByLocation.execute((GetPictureRequest(10.0, 11.0)))
-            when (result) {
-                is ResultWrapper.Success -> _image.value = result.value
-                is ResultWrapper.GenericError -> {
-                    // Show Error view
-                    _tracking.value = false
-                }
-                is ResultWrapper.NetworkError -> {
-                    // Show Network Error view
-                    _tracking.value = false
-                }
+            handleResult(result)
+        }
+    }
+
+    private fun handleResult(result: ResultWrapper<Image>) {
+        when (result) {
+            is ResultWrapper.Success -> _image.value = result.value
+            is ResultWrapper.GenericError -> {
+                // Show Error view
+                _tracking.value = false
+            }
+            is ResultWrapper.NetworkError -> {
+                // Show Network Error view
+                _tracking.value = false
             }
         }
     }

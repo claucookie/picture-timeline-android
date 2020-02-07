@@ -1,8 +1,8 @@
 package dev.claucookielabs.picstimeline.data.repository
 
-import dev.claucookielabs.picstimeline.data.datasource.ApiImage
+import dev.claucookielabs.picstimeline.data.datasource.remote.ApiImage
 
 interface PicturesDataSource {
-    fun getPictureByLocation(lat: Double, long: Double): ApiImage
+    suspend fun getPictureByLocation(lat: Double, long: Double): ApiImage?
 
 }

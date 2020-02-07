@@ -1,6 +1,8 @@
 package dev.claucookielabs.picstimeline
 
-import dev.claucookielabs.picstimeline.data.datasource.RemoteFlickerDataSource
+import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApi
+import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApiFactory
+import dev.claucookielabs.picstimeline.data.datasource.remote.RemoteFlickerDataSource
 import dev.claucookielabs.picstimeline.data.repository.FlickrRepository
 import dev.claucookielabs.picstimeline.data.repository.PicturesDataSource
 import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
@@ -25,7 +27,8 @@ fun App.initKoin() {
 
 private val dataModules = module {
     factory<PicturesRepository> { FlickrRepository(get()) }
-    factory<PicturesDataSource> { RemoteFlickerDataSource() }
+    factory<PicturesDataSource> { RemoteFlickerDataSource(get()) }
+    factory<FlickrApi> { FlickrApiFactory.create() }
 }
 
 private val scopedModules = module {
