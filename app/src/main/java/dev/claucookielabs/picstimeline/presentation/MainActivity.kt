@@ -1,8 +1,14 @@
 package dev.claucookielabs.picstimeline.presentation
 
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.databinding.ActivityMainBinding
 import dev.claucookielabs.picstimeline.presentation.ui.ImagesAdapter
@@ -31,5 +37,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun startTracking() {
         mainViewModel.startTracking()
+
+        Dexter.withActivity(this)
+            .withPermissions(
+                ACCESS_FINE_LOCATION,
+                ACCESS_COARSE_LOCATION
+            ).withListener(object : MultiplePermissionsListener {
+                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
+                    token: PermissionToken?
+                ) {
+
+                }
+            }).check();
     }
+
 }
