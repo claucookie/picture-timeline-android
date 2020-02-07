@@ -1,7 +1,7 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply(plugin: "kotlin-kapt")
+apply(plugin : "com.android.application")
+apply(plugin : "kotlin-android")
+apply(plugin : "kotlin-android-extensions")
+apply(plugin : "kotlin-kapt")
 
 android {
     compileSdkVersion 29
@@ -15,6 +15,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "FLICKR_KEY", "\"b5c47f6993fb17e5f49c06ccb6a2d096\"")
     }
 
     buildTypes {
@@ -22,6 +24,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    dataBinding {
+        enabled true
     }
 
 }
@@ -40,8 +46,10 @@ dependencies {
     implementation("com.google.android.material:material:1.0.0")
     implementation("android.arch.lifecycle:extensions:1.1.1")
     implementation("com.github.bumptech.glide:glide:4.11.0")
-    implementation("com.squareup.retrofit2:retrofit:2.6.0") // Not using 2.7.1 due to meta factory issue https://github.com/square/retrofit/issues/3280
+    implementation("com.squareup.retrofit2:retrofit:2.6.0")
+    // Not using 2.7.1 due to meta factory issue https://github.com/square/retrofit/issues/3280
     implementation("com.squareup.retrofit2:converter-moshi:2.6.0")
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.9.2")
     implementation("com.squareup.retrofit2:converter-scalars:2.6.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.0.1")
     implementation("org.koin:koin-android:2.0.1")
