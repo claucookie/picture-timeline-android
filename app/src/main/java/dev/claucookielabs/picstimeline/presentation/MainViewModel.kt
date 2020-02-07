@@ -11,7 +11,7 @@ import dev.claucookielabs.picstimeline.domain.ResultWrapper
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.launch
 
-class MainViewModel(val getPictureByLocation: GetPictureByLocation) : ViewModel() {
+class MainViewModel(private val getPictureByLocation: GetPictureByLocation) : ViewModel() {
     private val _image = MutableLiveData<Image>()
     val image: LiveData<Image>
         get() = _image
