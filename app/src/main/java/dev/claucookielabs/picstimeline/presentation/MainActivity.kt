@@ -51,21 +51,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     override fun onConnected(p0: Bundle?) {
         Log.i(this.javaClass.simpleName, "Google Play Services are connected")
-        // Get current location
-        val locationTask = FusedLocationProviderClient(this).lastLocation
-        locationTask.addOnCompleteListener { task ->
-            Log.i(this.javaClass.simpleName, "Location Retrieved")
-            task.result?.let {
-                location_text.text = String.format(
-                    getString(R.string.current_location),
-                    it.latitude.toString() + ", " + it.longitude.toString()
-                )
-            }
-        }
-        locationTask.addOnFailureListener {
-            Log.e(this.javaClass.simpleName, it.message ?: "Location not found, Unknown reason.")
-            location_text.text = getString(R.string.current_location_unavailable)
-        }
+        mainViewModel.startTracking()
     }
 
     override fun onConnectionSuspended(p0: Int) {

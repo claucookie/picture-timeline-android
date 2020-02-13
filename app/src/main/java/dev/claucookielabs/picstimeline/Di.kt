@@ -1,5 +1,6 @@
 package dev.claucookielabs.picstimeline
 
+import com.google.android.gms.location.FusedLocationProviderClient
 import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApi
 import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApiFactory
 import dev.claucookielabs.picstimeline.data.datasource.remote.RemoteFlickerDataSource
@@ -33,7 +34,8 @@ private val dataModules = module {
 
 private val scopedModules = module {
     scope(named<MainActivity>()) {
-        viewModel { MainViewModel(get()) }
+        viewModel { MainViewModel(get(), get()) }
+        scoped { FusedLocationProviderClient(androidContext()) }
         scoped { GetPictureByLocation(get()) }
     }
 }
