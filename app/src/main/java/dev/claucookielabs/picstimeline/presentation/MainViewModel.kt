@@ -1,23 +1,26 @@
 package dev.claucookielabs.picstimeline.presentation
 
 import android.location.Location
+import android.os.Looper
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.*
 import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
 import dev.claucookielabs.picstimeline.domain.GetPictureRequest
 import dev.claucookielabs.picstimeline.domain.ResultWrapper
 import kotlinx.android.parcel.Parcelize
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainViewModel(
     private val getPictureByLocation: GetPictureByLocation,
-    val fusedLocationProvider: FusedLocationProviderClient
+    private val fusedLocationProvider: FusedLocationProviderClient
 ) : ViewModel() {
     private val _image = MutableLiveData<Image>()
     val image: LiveData<Image>
@@ -34,22 +37,33 @@ class MainViewModel(
     fun startTracking() {
         _tracking.value = true
         if (location.value == null) {
-            getCurrentLocation()
+            getPeriodicLocationUpdates()
         }
     }
 
-    private fun getCurrentLocation() {
-        val locationTask = fusedLocationProvider.lastLocation
-        locationTask.addOnCompleteListener { task ->
-            Log.i(this.javaClass.simpleName, "Location Retrieved")
-            task.result?.let {
-                _location.value = it
-                fetchPictureForLocation(it)
+    private fun getPeriodicLocationUpdates() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                Log.i(this.javaClass.simpleName, "Requesting location updates")
+                fusedLocationProvider.requestLocationUpdates(
+                    LocationRequest(),
+                    object : LocationCallback() {
+                        override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
+                            super.onLocationAvailability(locationAvailability)
+                        }
+
+                        override fun onLocationResult(locationResult: LocationResult?) {
+                            locationResult ?: return
+                            Log.i(this.javaClass.simpleName, "Location Updated")
+                            locationResult.lastLocation?.let {
+                                _location.value = it
+                                fetchPictureForLocation(it)
+                            }
+                        }
+                    },
+                    Looper.getMainLooper()
+                )
             }
-        }
-        locationTask.addOnFailureListener {
-            Log.e(this.javaClass.simpleName, it.message ?: "Location not found, Unknown reason.")
-            _location.value = null
         }
     }
 

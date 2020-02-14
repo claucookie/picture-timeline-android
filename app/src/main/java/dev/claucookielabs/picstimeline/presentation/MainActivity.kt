@@ -1,7 +1,6 @@
 package dev.claucookielabs.picstimeline.presentation
 
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest.permission.*
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -36,17 +35,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         super.onCreate(savedInstanceState)
         setupDataBinding()
         setupGooglePlayClient()
-    }
-
-    override fun onStart() {
-        super.onStart()
         checkLocationPermissions()
     }
 
-    override fun onStop() {
-        if (googleApiClient.isConnected) googleApiClient.disconnect()
-        Log.i(this.javaClass.simpleName, "Google Play Services disconnected")
-        super.onStop()
+    override fun onDestroy() {
+        if (googleApiClient.isConnected){
+            googleApiClient.disconnect()
+            Log.i(this.javaClass.simpleName, "Google Play Services disconnected")
+        }
+        super.onDestroy()
     }
 
     override fun onConnected(p0: Bundle?) {
@@ -70,7 +67,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .build();
+                .build()
     }
 
     private fun setupDataBinding() {
@@ -115,7 +112,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         Dexter.withActivity(this)
             .withPermissions(
                 ACCESS_FINE_LOCATION,
-                ACCESS_COARSE_LOCATION
+                ACCESS_COARSE_LOCATION,
+                ACCESS_BACKGROUND_LOCATION
             ).withListener(
                 CompositeMultiplePermissionsListener(
                     onPermissionsCheckedListener,
