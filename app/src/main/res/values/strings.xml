@@ -2,5 +2,6 @@
     <string name="app_name">Timeline</string>
     <string name="current_location">Current Location: %s</string>
     <string name="current_location_loading">Current Location: Loading</string>
-    <string name="current_location_unavailable">Current Location: Unavailable</string>
+    <string name="current_location_unavailable">Start recording to track your location.</string>
+    <string name="start_tracking">Start tracking</string>
 </resources>

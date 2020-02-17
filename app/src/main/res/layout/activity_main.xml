@@ -41,15 +41,18 @@
                 app:layout_constraintTop_toBottomOf="@+id/location_text"
                 tools:listitem="@layout/item_view_picture" />
 
-            <ProgressBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tracking="@{viewmodel.tracking}" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/tracking_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:contentDescription="@string/start_tracking"
+            android:onClick="@{() -> viewmodel.toggleTracking()}"
+            android:src="@drawable/ic_record_animated"
+            app:backgroundTint="@color/colorPrimaryDark"
+            app:tracking="@{viewmodel.tracking}" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

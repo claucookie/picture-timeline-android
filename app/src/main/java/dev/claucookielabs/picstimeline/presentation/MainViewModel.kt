@@ -34,11 +34,9 @@ class MainViewModel(
     val location: LiveData<Location>
         get() = _location
 
-    fun startTracking() {
-        _tracking.value = true
-        if (location.value == null) {
-            getPeriodicLocationUpdates()
-        }
+    fun toggleTracking() {
+        if (_tracking.value == true) stopTracking()
+        else startTracking()
     }
 
     private fun getPeriodicLocationUpdates() {
@@ -50,15 +48,17 @@ class MainViewModel(
                     object : LocationCallback() {
                         override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
                             super.onLocationAvailability(locationAvailability)
+                            Log.i(
+                                this.javaClass.simpleName,
+                                "Location availability Updated: " + locationAvailability.toString()
+                            )
                         }
 
                         override fun onLocationResult(locationResult: LocationResult?) {
-                            locationResult ?: return
+                            locationResult?.lastLocation ?: return
                             Log.i(this.javaClass.simpleName, "Location Updated")
-                            locationResult.lastLocation?.let {
-                                _location.value = it
-                                fetchPictureForLocation(it)
-                            }
+                            _location.value = locationResult.lastLocation
+                            fetchPictureForLocation(locationResult.lastLocation)
                         }
                     },
                     Looper.getMainLooper()
@@ -89,7 +89,14 @@ class MainViewModel(
         }
     }
 
-    fun stopTracking() {
+    private fun startTracking() {
+        _tracking.value = true
+        if (location.value == null) {
+            getPeriodicLocationUpdates()
+        }
+    }
+
+    private fun stopTracking() {
         _tracking.value = false
     }
 }

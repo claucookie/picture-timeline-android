@@ -1,6 +1,7 @@
 package dev.claucookielabs.picstimeline.presentation
 
-import android.Manifest.permission.*
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -8,9 +9,9 @@ import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE
 import com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
@@ -35,11 +36,28 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         super.onCreate(savedInstanceState)
         setupDataBinding()
         setupGooglePlayClient()
+    }
+
+    /**
+     * @startuml
+     * start
+     * :onResume();
+     * :check Permissions;
+     * if (Granted?) then (yes)
+     * :Connect GoogleApiClient;
+     * else (no)
+     * :Show Snackbar message;
+     * endif
+     * stop
+     * @enduml
+     **/
+    override fun onResume() {
+        super.onResume()
         checkLocationPermissions()
     }
 
     override fun onDestroy() {
-        if (googleApiClient.isConnected){
+        if (googleApiClient.isConnected) {
             googleApiClient.disconnect()
             Log.i(this.javaClass.simpleName, "Google Play Services disconnected")
         }
@@ -48,7 +66,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     override fun onConnected(p0: Bundle?) {
         Log.i(this.javaClass.simpleName, "Google Play Services are connected")
-        mainViewModel.startTracking()
     }
 
     override fun onConnectionSuspended(p0: Int) {
@@ -89,7 +106,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             ).show()
             return
         }
-        googleApiClient.connect()
+        if (!googleApiClient.isConnected) googleApiClient.connect()
     }
 
     private fun checkLocationPermissions() {
@@ -102,25 +119,20 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         val snackbarMultiplePermissionsListener: MultiplePermissionsListener =
             SnackbarOnAnyDeniedMultiplePermissionsListener.Builder
                 .with(
-                    coordinator_view,
-                    "Location permission is required for this app to work. "
+                    coordinator_view, "Location permission is required for this app to work. "
                             + "You can give permission in the Settings of the app."
-                )
+                ).withDuration(LENGTH_INDEFINITE)
                 .withOpenSettingsButton("Settings")
                 .build()
 
         Dexter.withActivity(this)
-            .withPermissions(
-                ACCESS_FINE_LOCATION,
-                ACCESS_COARSE_LOCATION,
-                ACCESS_BACKGROUND_LOCATION
-            ).withListener(
+            .withPermissions(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION)
+            .withListener(
                 CompositeMultiplePermissionsListener(
                     onPermissionsCheckedListener,
                     snackbarMultiplePermissionsListener
                 )
-            )
-            .check()
+            ).check()
     }
 
     private fun isPlayServicesAvailable(): Boolean {
