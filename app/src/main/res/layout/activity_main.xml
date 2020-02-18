@@ -34,7 +34,7 @@
                 android:id="@+id/pictures_rv"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/match_constraint"
-                app:addImage="@{viewmodel.image}"
+                app:loadImages="@{viewmodel.images}"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

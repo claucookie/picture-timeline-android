@@ -13,10 +13,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.presentation.Image
 
-@BindingAdapter("addImage")
-fun RecyclerView.addImage(image: Image?) {
-    image?.let {
-        (adapter as ImagesAdapter).addImage(it)
+@BindingAdapter("loadImages")
+fun RecyclerView.loadImages(images: List<Image>?) {
+    images?.let {
+        (adapter as ImagesAdapter).setImages(images)
         scrollToPosition(0)
     }
 }

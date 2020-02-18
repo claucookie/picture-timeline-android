@@ -22,9 +22,9 @@ class MainViewModel(
     private val getPictureByLocation: GetPictureByLocation,
     private val fusedLocationProvider: FusedLocationProviderClient
 ) : ViewModel() {
-    private val _image = MutableLiveData<Image>()
-    val image: LiveData<Image>
-        get() = _image
+    private val _images = MutableLiveData<MutableList<Image>>()
+    val images: LiveData<MutableList<Image>>
+        get() = _images
 
     private val _tracking = MutableLiveData<Boolean>()
     val tracking: LiveData<Boolean>
@@ -88,14 +88,28 @@ class MainViewModel(
     private fun fetchPictureForLocation(it: Location): Job {
         return viewModelScope.launch {
             val result =
-                getPictureByLocation.execute((GetPictureRequest(it.latitude, it.longitude, SEARCH_DISTANCE_KMS)))
+                getPictureByLocation.execute(
+                    (GetPictureRequest(
+                        it.latitude,
+                        it.longitude,
+                        SEARCH_DISTANCE_KMS
+                    ))
+                )
             handleResult(result)
         }
     }
 
     private fun handleResult(result: ResultWrapper<Image>) {
         when (result) {
-            is ResultWrapper.Success -> _image.value = result.value
+            is ResultWrapper.Success -> {
+                if (_images.value == null) {
+                    _images.value = mutableListOf(result.value)
+                } else {
+                    val images = _images.value
+                    images?.add(0, result.value)
+                    _images.value = images
+                }
+            }
             is ResultWrapper.GenericError -> {
                 // Show Error view
                 _tracking.value = false
