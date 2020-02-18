@@ -39,32 +39,38 @@ class MainViewModel(
         else startTracking()
     }
 
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
+            super.onLocationAvailability(locationAvailability)
+            Log.i(
+                "Info",
+                "Location availability Updated: " + locationAvailability.toString()
+            )
+        }
+
+        override fun onLocationResult(locationResult: LocationResult?) {
+            locationResult?.lastLocation ?: return
+            Log.i("Info", "Location Updated")
+            _location.value = locationResult.lastLocation
+            fetchPictureForLocation(locationResult.lastLocation)
+        }
+    }
+
     private fun getPeriodicLocationUpdates() {
+
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                Log.i(this.javaClass.simpleName, "Requesting location updates")
+                Log.i("Info", "Requesting location updates")
                 fusedLocationProvider.requestLocationUpdates(
-                    LocationRequest(),
-                    object : LocationCallback() {
-                        override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
-                            super.onLocationAvailability(locationAvailability)
-                            Log.i(
-                                this.javaClass.simpleName,
-                                "Location availability Updated: " + locationAvailability.toString()
-                            )
-                        }
-
-                        override fun onLocationResult(locationResult: LocationResult?) {
-                            locationResult?.lastLocation ?: return
-                            Log.i(this.javaClass.simpleName, "Location Updated")
-                            _location.value = locationResult.lastLocation
-                            fetchPictureForLocation(locationResult.lastLocation)
-                        }
-                    },
-                    Looper.getMainLooper()
+                    LocationRequest(), locationCallback, Looper.getMainLooper()
                 )
             }
         }
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationProvider.removeLocationUpdates(locationCallback)
+        Log.i("Info", "Stopping location updates")
     }
 
     private fun fetchPictureForLocation(it: Location): Job {
@@ -91,12 +97,11 @@ class MainViewModel(
 
     private fun startTracking() {
         _tracking.value = true
-        if (location.value == null) {
-            getPeriodicLocationUpdates()
-        }
+        getPeriodicLocationUpdates()
     }
 
     private fun stopTracking() {
+        stopLocationUpdates()
         _tracking.value = false
     }
 }

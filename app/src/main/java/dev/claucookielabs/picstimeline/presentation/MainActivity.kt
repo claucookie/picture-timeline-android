@@ -59,23 +59,21 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     override fun onDestroy() {
         if (googleApiClient.isConnected) {
             googleApiClient.disconnect()
-            Log.i(this.javaClass.simpleName, "Google Play Services disconnected")
+            Log.i("Info", "Google Play Services disconnected")
         }
         super.onDestroy()
     }
 
     override fun onConnected(p0: Bundle?) {
-        Log.i(this.javaClass.simpleName, "Google Play Services are connected")
+        Log.i("Info", "Google Play Services are connected")
     }
 
     override fun onConnectionSuspended(p0: Int) {
-        Log.i(this.javaClass.simpleName, "Google Play Services connection suspended")
-        // Stop tracking tasks
+        Log.i("Info", "Google Play Services connection suspended")
     }
 
     override fun onConnectionFailed(p0: ConnectionResult) {
-        Log.e(this.javaClass.simpleName, "Google Play Services connection failed")
-        // Show Error Message
+        Log.i("Info", "Google Play Services connection failed")
     }
 
     private fun setupGooglePlayClient() {
