@@ -17,6 +17,7 @@ import dev.claucookielabs.picstimeline.presentation.Image
 fun RecyclerView.addImage(image: Image?) {
     image?.let {
         (adapter as ImagesAdapter).addImage(it)
+        scrollToPosition(0)
     }
 }
 

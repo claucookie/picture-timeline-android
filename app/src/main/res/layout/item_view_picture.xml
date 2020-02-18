@@ -15,5 +15,6 @@
         android:layout_height="200dp"
         android:scaleType="centerCrop"
         app:loadImage="@{image.url}"
-        tools:src="@tools:sample/avatars" />
+        tools:src="@tools:sample/avatars"
+        android:layout_marginBottom="@dimen/small_spacing"/>
 </layout>

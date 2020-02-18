@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     if (report?.areAllPermissionsGranted() == true) connectToGooglePlayServices()
                 }
             }
+
         val snackbarMultiplePermissionsListener: MultiplePermissionsListener =
             SnackbarOnAnyDeniedMultiplePermissionsListener.Builder
                 .with(

@@ -10,7 +10,8 @@ interface FlickrApi {
     suspend fun getPicturesByLocation(
         @Query("lat") lat: Double,
         @Query("lon") long: Double,
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("radius") distance: Float // in KM
     ): GetPicturesResponse
 }
 

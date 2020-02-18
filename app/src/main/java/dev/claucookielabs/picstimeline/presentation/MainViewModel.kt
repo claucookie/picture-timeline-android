@@ -30,9 +30,9 @@ class MainViewModel(
     val tracking: LiveData<Boolean>
         get() = _tracking
 
-    private val _location = MutableLiveData<Location>()
-    val location: LiveData<Location>
-        get() = _location
+    private val _lastLocation = MutableLiveData<Location>()
+    val lastLocation: LiveData<Location>
+        get() = _lastLocation
 
     fun toggleTracking() {
         if (_tracking.value == true) stopTracking()
@@ -50,19 +50,31 @@ class MainViewModel(
 
         override fun onLocationResult(locationResult: LocationResult?) {
             locationResult?.lastLocation ?: return
-            Log.i("Info", "Location Updated")
-            _location.value = locationResult.lastLocation
-            fetchPictureForLocation(locationResult.lastLocation)
+            Log.i(
+                "Info",
+                "Location Updated" + locationResult.lastLocation.latitude.toString() + " " + locationResult.lastLocation.longitude.toString()
+            )
+            if (_lastLocation.value == null || userHasWalkedEnoughDistance(locationResult.lastLocation)) {
+                _lastLocation.value = locationResult.lastLocation
+                fetchPictureForLocation(locationResult.lastLocation)
+            }
         }
     }
 
-    private fun getPeriodicLocationUpdates() {
+    private fun userHasWalkedEnoughDistance(currentLocation: Location): Boolean {
+        return currentLocation.distanceTo(_lastLocation.value) > MIN_WALKED_DISTANCE_METERS
+    }
 
+    private fun getPeriodicLocationUpdates() {
+        val locationRequest = LocationRequest()
+        locationRequest.fastestInterval = 30000 // 30 SEC
+        locationRequest.interval = 60000 // 60 SEC
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 Log.i("Info", "Requesting location updates")
                 fusedLocationProvider.requestLocationUpdates(
-                    LocationRequest(), locationCallback, Looper.getMainLooper()
+                    locationRequest, locationCallback, Looper.getMainLooper()
                 )
             }
         }
@@ -76,7 +88,7 @@ class MainViewModel(
     private fun fetchPictureForLocation(it: Location): Job {
         return viewModelScope.launch {
             val result =
-                getPictureByLocation.execute((GetPictureRequest(it.latitude, it.longitude)))
+                getPictureByLocation.execute((GetPictureRequest(it.latitude, it.longitude, SEARCH_DISTANCE_KMS)))
             handleResult(result)
         }
     }
@@ -110,3 +122,6 @@ class MainViewModel(
 data class Image(
     val url: String
 ) : Parcelable
+
+private const val MIN_WALKED_DISTANCE_METERS = 100F
+private const val SEARCH_DISTANCE_KMS = 0.06F
