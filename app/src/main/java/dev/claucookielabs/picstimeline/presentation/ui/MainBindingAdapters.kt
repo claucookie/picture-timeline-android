@@ -46,6 +46,6 @@ fun TextView.displayLocation(location: Location?) {
         if (location == null) context.getString(R.string.current_location_unavailable)
         else String.format(
             context.getString(R.string.current_location),
-            location.latitude.toString() + ", " + location.longitude.toString()
+            location.extras["area"]
         )
 }

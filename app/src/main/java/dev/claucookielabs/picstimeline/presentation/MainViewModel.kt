@@ -1,5 +1,6 @@
 package dev.claucookielabs.picstimeline.presentation
 
+import android.location.Geocoder
 import android.location.Location
 import android.os.Looper
 import android.os.Parcelable
@@ -20,7 +21,8 @@ import kotlinx.coroutines.withContext
 
 class MainViewModel(
     private val getPictureByLocation: GetPictureByLocation,
-    private val fusedLocationProvider: FusedLocationProviderClient
+    private val fusedLocationProvider: FusedLocationProviderClient,
+    private val geocoder: Geocoder
 ) : ViewModel() {
     private val _images = MutableLiveData<MutableList<Image>>()
     val images: LiveData<MutableList<Image>>
@@ -55,7 +57,7 @@ class MainViewModel(
                 "Location Updated" + locationResult.lastLocation.latitude.toString() + " " + locationResult.lastLocation.longitude.toString()
             )
             if (_lastLocation.value == null || userHasWalkedEnoughDistance(locationResult.lastLocation)) {
-                _lastLocation.value = locationResult.lastLocation
+                fetchAreaAndUpdateLocation(locationResult.lastLocation)
                 fetchPictureForLocation(locationResult.lastLocation)
             }
         }
@@ -67,8 +69,8 @@ class MainViewModel(
 
     private fun getPeriodicLocationUpdates() {
         val locationRequest = LocationRequest()
-        locationRequest.fastestInterval = 30000 // 30 SEC
-        locationRequest.interval = 60000 // 60 SEC
+        locationRequest.fastestInterval = MIN_LOC_REQUEST_INTERVAL_MILLIS
+        locationRequest.interval = MIN_LOC_REQUEST_INTERVAL_MILLIS
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -86,7 +88,7 @@ class MainViewModel(
     }
 
     private fun fetchPictureForLocation(it: Location): Job {
-        return viewModelScope.launch {
+        return viewModelScope.launch(Dispatchers.IO) {
             val result =
                 getPictureByLocation.execute(
                     (GetPictureRequest(
@@ -95,7 +97,19 @@ class MainViewModel(
                         SEARCH_DISTANCE_KMS
                     ))
                 )
-            handleResult(result)
+            withContext(Dispatchers.Main) {
+                handleResult(result)
+            }
+        }
+    }
+
+    private fun fetchAreaAndUpdateLocation(lastLocation: Location) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val addresses = geocoder.getFromLocation(lastLocation.latitude, lastLocation.longitude, MAX_GEOCODER_RESULTS)
+            withContext(Dispatchers.Main) {
+                lastLocation.extras.putString("area", addresses.first()?.thoroughfare ?: "")
+                _lastLocation.value = lastLocation
+            }
         }
     }
 
@@ -139,3 +153,5 @@ data class Image(
 
 private const val MIN_WALKED_DISTANCE_METERS = 100F
 private const val SEARCH_DISTANCE_KMS = 0.06F
+private const val MAX_GEOCODER_RESULTS = 1
+private const val MIN_LOC_REQUEST_INTERVAL_MILLIS = 60000L // 60 sec

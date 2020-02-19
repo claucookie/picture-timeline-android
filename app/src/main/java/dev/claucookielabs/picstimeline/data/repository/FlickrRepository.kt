@@ -24,5 +24,5 @@ class FlickrRepository(private val remoteDataSource: PicturesDataSource) : Pictu
 }
 
 private fun ApiImage.toDomain(): Image {
-    return Image(url = url)
+    return Image(url = url!!)
 }

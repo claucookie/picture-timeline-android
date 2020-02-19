@@ -28,5 +28,5 @@ data class ApiPictures(
 
 data class ApiImage(
     @field:Json(name = "url_l")
-    val url: String
+    val url: String?
 )
