@@ -53,6 +53,6 @@
             android:onClick="@{() -> viewmodel.toggleTracking()}"
             android:src="@drawable/ic_record_animated"
             app:backgroundTint="@color/colorPrimaryDark"
-            app:tracking="@{viewmodel.tracking}" />
+            app:tracking="@{viewmodel.tracking}"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
