@@ -15,7 +15,6 @@ import dev.claucookielabs.picstimeline.domain.GetPictureRequest
 import dev.claucookielabs.picstimeline.domain.ResultWrapper
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -35,6 +34,10 @@ class MainViewModel(
     private val _lastLocation = MutableLiveData<Location>()
     val lastLocation: LiveData<Location>
         get() = _lastLocation
+
+    private val _loading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean>
+        get() = _loading
 
     fun toggleTracking() {
         if (_tracking.value == true) stopTracking()
@@ -87,8 +90,9 @@ class MainViewModel(
         Log.i("Info", "Stopping location updates")
     }
 
-    private fun fetchPictureForLocation(it: Location): Job {
-        return viewModelScope.launch(Dispatchers.IO) {
+    private fun fetchPictureForLocation(it: Location) {
+        _loading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
             val result =
                 getPictureByLocation.execute(
                     (GetPictureRequest(
@@ -99,15 +103,20 @@ class MainViewModel(
                 )
             withContext(Dispatchers.Main) {
                 handleResult(result)
+                _loading.value = false
             }
         }
     }
 
     private fun fetchAreaAndUpdateLocation(lastLocation: Location) {
         viewModelScope.launch(Dispatchers.IO) {
-            val addresses = geocoder.getFromLocation(lastLocation.latitude, lastLocation.longitude, MAX_GEOCODER_RESULTS)
+            val addresses = geocoder.getFromLocation(
+                lastLocation.latitude,
+                lastLocation.longitude,
+                MAX_GEOCODER_RESULTS
+            )
             withContext(Dispatchers.Main) {
-                lastLocation.extras.putString("area", addresses.first()?.thoroughfare ?: "")
+                lastLocation.extras.putString("area", addresses.first()?.thoroughfare ?: addresses.first().postalCode)
                 _lastLocation.value = lastLocation
             }
         }

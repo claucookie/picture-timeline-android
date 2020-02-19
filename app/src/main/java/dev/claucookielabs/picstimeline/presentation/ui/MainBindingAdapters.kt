@@ -4,6 +4,9 @@ import android.graphics.drawable.Animatable2
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
+import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -38,6 +41,11 @@ fun FloatingActionButton.setTrackingFeedback(isTracking: Boolean?) {
     })
     if (isTracking == true) animatedVectorDrawable.start()
     else animatedVectorDrawable.clearAnimationCallbacks()
+}
+
+@BindingAdapter("loading")
+fun View.setLoading(isLoading: Boolean?) {
+    visibility = if (isLoading == true) VISIBLE else INVISIBLE
 }
 
 @BindingAdapter("displayLocation")
