@@ -37,8 +37,7 @@ class MainViewModel(
         _tracking.value = _tracking.value != true
     }
 
-
-    private fun fetchPictureForLocation(it: Location) {
+    fun fetchPictureForLocation(it: Location) {
         _loading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val result =
@@ -50,13 +49,13 @@ class MainViewModel(
                     ))
                 )
             withContext(Dispatchers.Main) {
-                handleResult(result)
+                handleImageResult(result)
                 _loading.value = false
             }
         }
     }
 
-    private fun handleResult(result: ResultWrapper<Image>) {
+    private fun handleImageResult(result: ResultWrapper<Image>) {
         when (result) {
             is ResultWrapper.Success -> {
                 if (_images.value == null) {

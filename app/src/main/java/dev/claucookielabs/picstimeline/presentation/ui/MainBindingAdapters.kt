@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.presentation.Image
+import dev.claucookielabs.picstimeline.services.AREA_EXTRA
 
 @BindingAdapter("loadImages")
 fun RecyclerView.loadImages(images: List<Image>?) {
@@ -54,6 +55,6 @@ fun TextView.displayLocation(location: Location?) {
         if (location == null) context.getString(R.string.current_location_unavailable)
         else String.format(
             context.getString(R.string.current_location),
-            location.extras["area"]
+            location.extras[AREA_EXTRA]
         )
 }

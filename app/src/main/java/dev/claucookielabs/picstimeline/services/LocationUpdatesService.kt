@@ -8,6 +8,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
@@ -57,9 +58,16 @@ class LocationUpdatesService : Service() {
     private fun handleLocationResult(locationResult: LocationResult?) {
         locationResult?.lastLocation ?: return
         if (lastLocation == null || userHasWalkedEnoughDistance(locationResult.lastLocation)) {
-            fetchAreaAndUpdateLocation(locationResult.lastLocation)
-            // Broadcast location to Activity
+            lastLocation = fetchAreaForLocation(locationResult.lastLocation)
+            broadcastLocation(lastLocation!!)
         }
+    }
+
+    private fun broadcastLocation(currentLocation: Location) {
+        val intent = Intent(LOCATION_BROADCAST)
+        intent.putExtra(LOCATION_EXTRA, currentLocation)
+        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+        Log.i("Info", "Broadcast sent:  $LOCATION_BROADCAST")
     }
 
     private fun handleLocationAvailability(locationAvailability: LocationAvailability?) {
@@ -72,7 +80,7 @@ class LocationUpdatesService : Service() {
     }
 
 
-    private fun fetchAreaAndUpdateLocation(currentLocation: Location) {
+    private fun fetchAreaForLocation(currentLocation: Location): Location {
         val addresses = geocoder.getFromLocation(
             currentLocation.latitude,
             currentLocation.longitude,
@@ -81,11 +89,10 @@ class LocationUpdatesService : Service() {
         val firstAddress = addresses.first()
         val areaName = firstAddress?.thoroughfare ?: firstAddress.postalCode
         currentLocation.extras.putString(
-            "area",
+            AREA_EXTRA,
             areaName
         )
-        lastLocation = currentLocation
-        Log.i("Info", "Location Updated: $areaName")
+        return currentLocation
     }
 
     /**
@@ -103,3 +110,7 @@ class LocationUpdatesService : Service() {
 private const val MIN_WALKED_DISTANCE_METERS = 100F
 private const val MAX_GEOCODER_RESULTS = 1
 private const val MIN_LOC_REQUEST_INTERVAL_MILLIS = 60000L // 60 sec
+const val LOCATION_BROADCAST = "location_broadcast"
+const val AREA_EXTRA = "area"
+const val LOCATION_EXTRA = "location"
+

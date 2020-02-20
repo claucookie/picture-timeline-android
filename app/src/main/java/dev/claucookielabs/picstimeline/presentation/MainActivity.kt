@@ -1,17 +1,19 @@
 package dev.claucookielabs.picstimeline.presentation
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
+import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.databinding.ActivityMainBinding
 import dev.claucookielabs.picstimeline.presentation.ui.ImagesAdapter
+import dev.claucookielabs.picstimeline.services.LOCATION_BROADCAST
+import dev.claucookielabs.picstimeline.services.LOCATION_EXTRA
 import dev.claucookielabs.picstimeline.services.LocationUpdatesService
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.androidx.scope.currentScope
@@ -21,20 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     private val mainViewModel: MainViewModel by currentScope.viewModel(this)
     private val locationPermissionsChecker = LocationPermissionsChecker()
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder: LocationUpdatesService.LocalBinder =
-                service as LocationUpdatesService.LocalBinder
-            locationUpdatesService = binder.service
-            isLocationUpdatesServiceBound = true
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            locationUpdatesService = null
-            isLocationUpdatesServiceBound = false
-        }
-
-    }
     private lateinit var binding: ActivityMainBinding
     private var locationUpdatesService: LocationUpdatesService? = null
     private var isLocationUpdatesServiceBound = false
@@ -43,6 +31,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setupDataBinding()
         bindLocationUpdatesService()
+        registerLocationUpdatesBroadcast()
+        observeTrackingChanges()
+    }
+
+    private fun observeTrackingChanges() {
         mainViewModel.tracking.observe(this, Observer { isTracking ->
             if (isTracking) locationUpdatesService?.getPeriodicLocationUpdates()
             else locationUpdatesService?.stopLocationUpdates()
@@ -57,9 +50,10 @@ class MainActivity : AppCompatActivity() {
         ) { binding.trackingFab.isEnabled = true }
     }
 
-    override fun onStop() {
+    override fun onDestroy() {
+        unregisterLocationUpdatesBroadcast()
         unbindLocationUpdatesService()
-        super.onStop()
+        super.onDestroy()
     }
 
     private fun setupDataBinding() {
@@ -74,6 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun unbindLocationUpdatesService() {
         if (isLocationUpdatesServiceBound) {
+            Log.i("Info", "Unbinding location updates service")
             unbindService(serviceConnection)
             isLocationUpdatesServiceBound = false
         }
@@ -82,6 +77,50 @@ class MainActivity : AppCompatActivity() {
     private fun bindLocationUpdatesService() {
         // Bind to the service. If the service is in foreground mode, this signals to the service
         // that since this activity is in the foreground, the service can exit foreground mode.
-        bindService(Intent(this, LocationUpdatesService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
+        bindService(
+            Intent(this, LocationUpdatesService::class.java),
+            serviceConnection,
+            Context.BIND_AUTO_CREATE
+        )
+        Log.i("Info", "Bind location updates service")
+    }
+
+    private fun registerLocationUpdatesBroadcast() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            locationBroadcastReceiver,
+            IntentFilter(LOCATION_BROADCAST)
+        )
+        Log.i("Info", "Register to Broadcast:  $LOCATION_BROADCAST")
+    }
+
+    private fun unregisterLocationUpdatesBroadcast() {
+        Log.i("Info", "Unregistering Broadcast:  $LOCATION_BROADCAST")
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver)
+    }
+
+    private val locationBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.i("Info", "Broadcast received:  $LOCATION_BROADCAST")
+            intent?.getParcelableExtra<Location>(LOCATION_EXTRA) ?: return
+
+            val location: Location = intent.getParcelableExtra(LOCATION_EXTRA)!!
+            mainViewModel.fetchPictureForLocation(location)
+        }
+
+    }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder: LocationUpdatesService.LocalBinder =
+                service as LocationUpdatesService.LocalBinder
+            locationUpdatesService = binder.service
+            isLocationUpdatesServiceBound = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            locationUpdatesService = null
+            isLocationUpdatesServiceBound = false
+        }
+
     }
 }
