@@ -17,44 +17,45 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingStart="@dimen/normal_spacing"
-            android:paddingEnd="@dimen/normal_spacing">
+            android:layout_height="match_parent">
 
             <TextView
                 android:id="@+id/location_text"
                 android:layout_width="@dimen/match_constraint"
                 android:layout_height="@dimen/match_constraint"
                 android:gravity="start|center"
+                android:paddingStart="@dimen/normal_spacing"
+                android:paddingEnd="@dimen/normal_spacing"
                 app:displayLocation="@{viewmodel.lastLocation}"
+                app:layout_constraintBottom_toBottomOf="@id/loading_view"
                 app:layout_constraintEnd_toStartOf="@id/loading_view"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="@id/loading_view"
                 tools:text="Current Location: XXXXX, XXXXX" />
 
             <ProgressBar
                 android:id="@+id/loading_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toEndOf="@id/location_text"
-                app:layout_constraintBottom_toTopOf="@id/pictures_rv"
+                android:paddingStart="@dimen/normal_spacing"
+                android:paddingEnd="@dimen/normal_spacing"
                 android:visibility="invisible"
-                tools:visibility="visible"
+                app:layout_constraintBottom_toTopOf="@id/pictures_rv"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/location_text"
+                app:layout_constraintTop_toTopOf="parent"
                 app:loading="@{viewmodel.loading}"
-                />
+                tools:visibility="visible" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/pictures_rv"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/match_constraint"
-                app:loadImages="@{viewmodel.images}"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/location_text"
+                app:loadImages="@{viewmodel.images}"
                 tools:listitem="@layout/item_view_picture" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -69,6 +70,6 @@
             android:onClick="@{() -> viewmodel.toggleTracking()}"
             android:src="@drawable/ic_record_animated"
             app:backgroundTint="@color/colorPrimaryDark"
-            app:tracking="@{viewmodel.tracking}"/>
+            app:tracking="@{viewmodel.tracking}" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
