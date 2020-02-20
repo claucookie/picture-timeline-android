@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainViewModel(
+class MainViewModel (
     private val getPictureByLocation: GetPictureByLocation,
     private val sharedPrefsDataSource: SharedPrefsDataSource
 ) : ViewModel() {
@@ -39,22 +39,18 @@ class MainViewModel(
         _tracking.value = _tracking.value != true
     }
 
-    fun fetchPictureForLocation(
-        location: DeviceLocation,
-        searchRadiusKms: Float = SEARCH_DISTANCE_KMS
-    ) {
+    fun fetchPictureForLocation(location: DeviceLocation) {
         _loading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val result =
                 getPictureByLocation.execute(
-                    (GetPictureRequest(
+                    GetPictureRequest(
                         location.latitude,
-                        location.longitude,
-                        searchRadiusKms
-                    ))
+                        location.longitude
+                    )
                 )
             withContext(Dispatchers.Main) {
-                handleImageResult(result, location, searchRadiusKms)
+                handleImageResult(result)
                 _loading.value = false
                 _lastLocation.value = location
             }
@@ -71,22 +67,13 @@ class MainViewModel(
         _images.value = images
     }
 
-    private fun handleImageResult(
-        result: ResultWrapper<Image>,
-        location: DeviceLocation,
-        searchRadiusKms: Float
-    ) {
+    private fun handleImageResult(result: ResultWrapper<Image>) {
         when (result) {
             is ResultWrapper.Success -> {
                 val images = _images.value ?: mutableListOf()
                 images.add(0, result.value)
                 sharedPrefsDataSource.saveImages(images)
                 _images.value = images
-            }
-            is ResultWrapper.NoPicFoundError -> {
-                if (searchRadiusKms < MAX_SEARCH_DISTANCE_KMS) {
-                    fetchPictureForLocation(location, MAX_SEARCH_DISTANCE_KMS)
-                }
             }
             is ResultWrapper.GenericError -> {
                 // Show Error view
@@ -104,6 +91,3 @@ class MainViewModel(
 data class Image(
     val url: String
 ) : Parcelable
-
-private const val SEARCH_DISTANCE_KMS = 0.06F
-private const val MAX_SEARCH_DISTANCE_KMS = 0.2F

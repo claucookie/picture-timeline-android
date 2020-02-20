@@ -16,12 +16,20 @@ import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.util.PlatformVersion
 import com.google.android.gms.location.*
+import dev.claucookielabs.picstimeline.BuildConfig
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
+import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
+import dev.claucookielabs.picstimeline.domain.GetPictureRequest
+import dev.claucookielabs.picstimeline.domain.ResultWrapper
 import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import dev.claucookielabs.picstimeline.domain.model.toAndroidLocation
 import dev.claucookielabs.picstimeline.domain.model.toDeviceLocation
+import dev.claucookielabs.picstimeline.presentation.Image
 import dev.claucookielabs.picstimeline.presentation.MainActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 
 
@@ -29,13 +37,14 @@ class LocationUpdatesService : Service() {
 
     private val fusedLocationProvider: FusedLocationProviderClient = get()
     private val sharedPrefsDataSource: SharedPrefsDataSource = get()
+    private val getPictureByLocation: GetPictureByLocation = get()
     private var configurationChanged = false
     private val geocoder: Geocoder = get()
     private val binder = LocalBinder()
     private val locationCallback = object : LocationCallback() {
         override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
             super.onLocationAvailability(locationAvailability)
-            handleLocationAvailability(locationAvailability)
+            Log.i("Info", "Location available = " + locationAvailability.toString())
         }
 
         override fun onLocationResult(locationResult: LocationResult?) {
@@ -104,7 +113,33 @@ class LocationUpdatesService : Service() {
         val currentLocation = locationResult.lastLocation.toDeviceLocation()
         if (userHasWalkedEnoughDistance(currentLocation)) {
             sharedPrefsDataSource.saveLastLocation(fetchAreaForLocation(currentLocation))
-            broadcastLocation(sharedPrefsDataSource.getLastLocation()!!)
+            if (isRunningInForeground()) {
+                fetchPictureForLocation(currentLocation)
+            } else {
+                broadcastLocation(currentLocation)
+            }
+        }
+    }
+
+    private fun fetchPictureForLocation(location: DeviceLocation) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val result = getPictureByLocation.execute(
+                (GetPictureRequest(
+                    location.latitude,
+                    location.longitude
+                ))
+            )
+            handleImageResult(result)
+        }
+    }
+
+    private fun handleImageResult(result: ResultWrapper<Image>) {
+        if (result is ResultWrapper.Success) {
+            // We dont care about the errors cause the app is not open
+            val images = sharedPrefsDataSource.getImages().toMutableList()
+            images.add(0, result.value)
+            sharedPrefsDataSource.saveImages(images)
+            Log.i("Info", "Saving picture while service is in foreground")
         }
     }
 
@@ -114,11 +149,6 @@ class LocationUpdatesService : Service() {
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
         Log.i("Info", "Broadcast sent:  $LOCATION_BROADCAST")
     }
-
-    private fun handleLocationAvailability(locationAvailability: LocationAvailability?) {
-        Log.i("Info", "Location available = " + locationAvailability.toString())
-    }
-
 
     private fun userHasWalkedEnoughDistance(currentLocation: DeviceLocation): Boolean {
         val lastLocation = sharedPrefsDataSource.getLastLocation()
@@ -178,6 +208,12 @@ class LocationUpdatesService : Service() {
             return channel.id
         }
         return NOTIFICATION_CHANNEL_ID
+    }
+
+    private fun isRunningInForeground(): Boolean {
+        val manager =
+            applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        return manager.runningAppProcesses?.firstOrNull { it.processName == BuildConfig.APPLICATION_ID } != null
     }
 
     /**

@@ -45,6 +45,7 @@ private val dataModules = module {
     }
     single<Moshi> { Moshi.Builder().build() }
     single { SharedPrefsDataSource(get(), get()) }
+    single { GetPictureByLocation(get()) }
 }
 
 private val locationModules = module {
