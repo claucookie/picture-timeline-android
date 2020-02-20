@@ -102,9 +102,7 @@ class LocationUpdatesService : Service() {
     private fun handleLocationResult(locationResult: LocationResult?) {
         locationResult?.lastLocation ?: return
         val currentLocation = locationResult.lastLocation.toDeviceLocation()
-        if (sharedPrefsDataSource.getLastLocation() == null
-            || userHasWalkedEnoughDistance(currentLocation)
-        ) {
+        if (userHasWalkedEnoughDistance(currentLocation)) {
             sharedPrefsDataSource.saveLastLocation(fetchAreaForLocation(currentLocation))
             broadcastLocation(sharedPrefsDataSource.getLastLocation()!!)
         }

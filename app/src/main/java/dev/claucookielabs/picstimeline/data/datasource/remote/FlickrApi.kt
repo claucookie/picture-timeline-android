@@ -6,7 +6,7 @@ import retrofit2.http.Query
 
 interface FlickrApi {
 
-    @GET("rest/?method=flickr.photos.search&extras=url_l&format=json&nojsoncallback=1&media=photo")
+    @GET("rest/?method=flickr.photos.search&extras=url_m&format=json&nojsoncallback=1&media=photo")
     suspend fun getPicturesByLocation(
         @Query("lat") lat: Double,
         @Query("lon") long: Double,
@@ -27,6 +27,6 @@ data class ApiPictures(
 )
 
 data class ApiImage(
-    @field:Json(name = "url_l")
+    @field:Json(name = "url_m")
     val url: String?
 )

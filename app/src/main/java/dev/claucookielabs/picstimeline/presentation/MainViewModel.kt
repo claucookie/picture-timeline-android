@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
 import dev.claucookielabs.picstimeline.domain.GetPictureRequest
 import dev.claucookielabs.picstimeline.domain.ResultWrapper
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainViewModel(
-    private val getPictureByLocation: GetPictureByLocation
+    private val getPictureByLocation: GetPictureByLocation,
+    private val sharedPrefsDataSource: SharedPrefsDataSource
 ) : ViewModel() {
     private val _images = MutableLiveData<MutableList<Image>>()
     val images: LiveData<MutableList<Image>>
@@ -37,7 +39,10 @@ class MainViewModel(
         _tracking.value = _tracking.value != true
     }
 
-    fun fetchPictureForLocation(location: DeviceLocation, searchRadiusKms: Float = SEARCH_DISTANCE_KMS) {
+    fun fetchPictureForLocation(
+        location: DeviceLocation,
+        searchRadiusKms: Float = SEARCH_DISTANCE_KMS
+    ) {
         _loading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val result =
@@ -56,9 +61,14 @@ class MainViewModel(
         }
     }
 
-    fun restorePreviousState(isTracking: Boolean, lastLocation: DeviceLocation?) {
+    fun restorePreviousState(
+        isTracking: Boolean,
+        lastLocation: DeviceLocation?,
+        images: MutableList<Image>
+    ) {
         _tracking.value = isTracking
         _lastLocation.value = lastLocation
+        _images.value = images
     }
 
     private fun handleImageResult(
@@ -68,13 +78,10 @@ class MainViewModel(
     ) {
         when (result) {
             is ResultWrapper.Success -> {
-                if (_images.value == null) {
-                    _images.value = mutableListOf(result.value)
-                } else {
-                    val images = _images.value
-                    images?.add(0, result.value)
-                    _images.value = images
-                }
+                val images = _images.value ?: mutableListOf()
+                images.add(0, result.value)
+                sharedPrefsDataSource.saveImages(images)
+                _images.value = images
             }
             is ResultWrapper.NoPicFoundError -> {
                 if (searchRadiusKms < MAX_SEARCH_DISTANCE_KMS) {

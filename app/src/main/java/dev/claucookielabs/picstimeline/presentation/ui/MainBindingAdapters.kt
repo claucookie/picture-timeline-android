@@ -19,7 +19,7 @@ import dev.claucookielabs.picstimeline.presentation.Image
 @BindingAdapter("loadImages")
 fun RecyclerView.loadImages(images: List<Image>?) {
     images?.let {
-        (adapter as ImagesAdapter).setImages(images)
+        (adapter as ImagesAdapter).setImages(images) // the images is a linkedhashtreemap wtf?
         scrollToPosition(0)
     }
 }

@@ -93,7 +93,8 @@ class MainActivity : AppCompatActivity() {
             sharedPreferences.saveActivityClosed(false)
             mainViewModel.restorePreviousState(
                 sharedPreferences.isTracking(),
-                sharedPreferences.getLastLocation()
+                sharedPreferences.getLastLocation(),
+                sharedPreferences.getImages().toMutableList()
             )
         }
     }
