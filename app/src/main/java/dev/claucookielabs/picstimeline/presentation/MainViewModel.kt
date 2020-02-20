@@ -37,25 +37,30 @@ class MainViewModel(
         _tracking.value = _tracking.value != true
     }
 
-    fun fetchPictureForLocation(it: Location) {
+    fun fetchPictureForLocation(location: Location, searchRadiusKms: Float = SEARCH_DISTANCE_KMS) {
         _loading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val result =
                 getPictureByLocation.execute(
                     (GetPictureRequest(
-                        it.latitude,
-                        it.longitude,
-                        SEARCH_DISTANCE_KMS
+                        location.latitude,
+                        location.longitude,
+                        searchRadiusKms
                     ))
                 )
             withContext(Dispatchers.Main) {
-                handleImageResult(result)
+                handleImageResult(result, location, searchRadiusKms)
                 _loading.value = false
+                _lastLocation.value = location
             }
         }
     }
 
-    private fun handleImageResult(result: ResultWrapper<Image>) {
+    private fun handleImageResult(
+        result: ResultWrapper<Image>,
+        location: Location,
+        searchRadiusKms: Float
+    ) {
         when (result) {
             is ResultWrapper.Success -> {
                 if (_images.value == null) {
@@ -64,6 +69,11 @@ class MainViewModel(
                     val images = _images.value
                     images?.add(0, result.value)
                     _images.value = images
+                }
+            }
+            is ResultWrapper.NoPicFoundError -> {
+                if (searchRadiusKms < MAX_SEARCH_DISTANCE_KMS) {
+                    fetchPictureForLocation(location, MAX_SEARCH_DISTANCE_KMS)
                 }
             }
             is ResultWrapper.GenericError -> {
@@ -84,3 +94,4 @@ data class Image(
 ) : Parcelable
 
 private const val SEARCH_DISTANCE_KMS = 0.06F
+private const val MAX_SEARCH_DISTANCE_KMS = 0.2F
