@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.location.Geocoder
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.squareup.moshi.Moshi
 import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApi
 import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApiFactory
@@ -42,7 +43,8 @@ private val dataModules = module {
             Context.MODE_PRIVATE
         )
     }
-    single { SharedPrefsDataSource(get()) }
+    single<Moshi> { Moshi.Builder().build() }
+    single { SharedPrefsDataSource(get(), get()) }
 }
 
 private val locationModules = module {

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.location.Geocoder
-import android.location.Location
 import android.os.Binder
 import android.os.IBinder
 import android.os.Looper
@@ -19,13 +18,15 @@ import com.google.android.gms.common.util.PlatformVersion
 import com.google.android.gms.location.*
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
+import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
+import dev.claucookielabs.picstimeline.domain.model.toAndroidLocation
+import dev.claucookielabs.picstimeline.domain.model.toDeviceLocation
 import dev.claucookielabs.picstimeline.presentation.MainActivity
 import org.koin.android.ext.android.get
 
 
 class LocationUpdatesService : Service() {
 
-    private var lastLocation: Location? = null
     private val fusedLocationProvider: FusedLocationProviderClient = get()
     private val sharedPrefsDataSource: SharedPrefsDataSource = get()
     private var configurationChanged = false
@@ -100,13 +101,16 @@ class LocationUpdatesService : Service() {
 
     private fun handleLocationResult(locationResult: LocationResult?) {
         locationResult?.lastLocation ?: return
-        if (lastLocation == null || userHasWalkedEnoughDistance(locationResult.lastLocation)) {
-            lastLocation = fetchAreaForLocation(locationResult.lastLocation)
-            broadcastLocation(lastLocation!!)
+        val currentLocation = locationResult.lastLocation.toDeviceLocation()
+        if (sharedPrefsDataSource.getLastLocation() == null
+            || userHasWalkedEnoughDistance(currentLocation)
+        ) {
+            sharedPrefsDataSource.saveLastLocation(fetchAreaForLocation(currentLocation))
+            broadcastLocation(sharedPrefsDataSource.getLastLocation()!!)
         }
     }
 
-    private fun broadcastLocation(currentLocation: Location) {
+    private fun broadcastLocation(currentLocation: DeviceLocation) {
         val intent = Intent(LOCATION_BROADCAST)
         intent.putExtra(LOCATION_EXTRA, currentLocation)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
@@ -118,12 +122,16 @@ class LocationUpdatesService : Service() {
     }
 
 
-    private fun userHasWalkedEnoughDistance(currentLocation: Location): Boolean {
-        return currentLocation.distanceTo(lastLocation) > MIN_WALKED_DISTANCE_METERS
+    private fun userHasWalkedEnoughDistance(currentLocation: DeviceLocation): Boolean {
+        val lastLocation = sharedPrefsDataSource.getLastLocation()
+        lastLocation ?: return true
+        return currentLocation.toAndroidLocation().distanceTo(
+            lastLocation.toAndroidLocation()
+        ) > MIN_WALKED_DISTANCE_METERS
     }
 
 
-    private fun fetchAreaForLocation(currentLocation: Location): Location {
+    private fun fetchAreaForLocation(currentLocation: DeviceLocation): DeviceLocation {
         val addresses = geocoder.getFromLocation(
             currentLocation.latitude,
             currentLocation.longitude,
@@ -131,16 +139,15 @@ class LocationUpdatesService : Service() {
         )
         val firstAddress = addresses.first()
         val areaName = firstAddress?.thoroughfare ?: firstAddress.postalCode
-        currentLocation.extras.putString(
-            AREA_EXTRA,
-            areaName
-        )
+        currentLocation.area = areaName
         return currentLocation
     }
 
     private fun getNotification(): Notification {
         val title = "Timeline is tracking your location"
-        val content = "Current location: ${lastLocation?.extras?.get(AREA_EXTRA) ?: "Unknown"}"
+        val content =
+            "Current location: ${sharedPrefsDataSource.getLastLocation()?.area
+                ?: "Unknown"}"
         val intent = Intent(this, MainActivity::class.java)
         val builder = NotificationCompat.Builder(this, createNotificationChannel())
             .setContentText(content)
@@ -153,9 +160,9 @@ class LocationUpdatesService : Service() {
             .setSmallIcon(R.drawable.ic_android_notif)
             .setTicker(content)
             .setContentIntent(PendingIntent.getActivity(this, 0, intent, 0))
-            .setWhen(System.currentTimeMillis());
+            .setWhen(System.currentTimeMillis())
 
-        return builder.build();
+        return builder.build()
     }
 
     private fun createNotificationChannel(): String {
@@ -194,6 +201,5 @@ private const val NOTIFICATION_CHANNEL_ID = "location"
 private const val NOTIFICATION_CHANNEL_NAME = "Location Notifications"
 private const val NOTIFICATION_ID: Int = 398422093
 const val LOCATION_BROADCAST = "location_broadcast"
-const val AREA_EXTRA = "area"
 const val LOCATION_EXTRA = "location"
 

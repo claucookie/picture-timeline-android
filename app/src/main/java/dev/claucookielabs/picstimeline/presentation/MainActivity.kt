@@ -1,7 +1,6 @@
 package dev.claucookielabs.picstimeline.presentation
 
 import android.content.*
-import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -12,6 +11,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.databinding.ActivityMainBinding
+import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import dev.claucookielabs.picstimeline.presentation.ui.ImagesAdapter
 import dev.claucookielabs.picstimeline.services.LOCATION_BROADCAST
 import dev.claucookielabs.picstimeline.services.LOCATION_EXTRA
@@ -36,22 +36,6 @@ class MainActivity : AppCompatActivity() {
         bindLocationUpdatesService()
         registerLocationUpdatesBroadcast()
         observeTrackingChanges()
-    }
-
-    private fun observeTrackingChanges() {
-        mainViewModel.tracking.observe(this, Observer { isTracking ->
-            if (isTracking) locationUpdatesService?.getPeriodicLocationUpdates()
-            else locationUpdatesService?.stopLocationUpdates()
-        })
-    }
-
-    private fun restoreStateFromService() {
-        if (sharedPreferences.wasActivityClosed()) {
-            sharedPreferences.saveActivityClosed(false)
-            mainViewModel.restorePreviousState(
-                sharedPreferences.isTracking()
-            )
-        }
     }
 
     override fun onResume() {
@@ -97,6 +81,23 @@ class MainActivity : AppCompatActivity() {
         Log.i("Info", "Bind location updates service")
     }
 
+    private fun observeTrackingChanges() {
+        mainViewModel.tracking.observe(this, Observer { isTracking ->
+            if (isTracking) locationUpdatesService?.getPeriodicLocationUpdates()
+            else locationUpdatesService?.stopLocationUpdates()
+        })
+    }
+
+    private fun restoreStateFromService() {
+        if (sharedPreferences.wasActivityClosed()) {
+            sharedPreferences.saveActivityClosed(false)
+            mainViewModel.restorePreviousState(
+                sharedPreferences.isTracking(),
+                sharedPreferences.getLastLocation()
+            )
+        }
+    }
+
     private fun registerLocationUpdatesBroadcast() {
         LocalBroadcastManager.getInstance(this).registerReceiver(
             locationBroadcastReceiver,
@@ -113,9 +114,9 @@ class MainActivity : AppCompatActivity() {
     private val locationBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.i("Info", "Broadcast received:  $LOCATION_BROADCAST")
-            intent?.getParcelableExtra<Location>(LOCATION_EXTRA) ?: return
+            intent?.getParcelableExtra<DeviceLocation>(LOCATION_EXTRA) ?: return
 
-            val location: Location = intent.getParcelableExtra(LOCATION_EXTRA)!!
+            val location: DeviceLocation = intent.getParcelableExtra(LOCATION_EXTRA)!!
             mainViewModel.fetchPictureForLocation(location)
         }
 

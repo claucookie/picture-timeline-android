@@ -1,6 +1,5 @@
 package dev.claucookielabs.picstimeline.presentation
 
-import android.location.Location
 import android.os.Parcelable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
 import dev.claucookielabs.picstimeline.domain.GetPictureRequest
 import dev.claucookielabs.picstimeline.domain.ResultWrapper
+import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,8 +25,8 @@ class MainViewModel(
     val tracking: LiveData<Boolean>
         get() = _tracking
 
-    private val _lastLocation = MutableLiveData<Location>()
-    val lastLocation: LiveData<Location>
+    private val _lastLocation = MutableLiveData<DeviceLocation>()
+    val lastLocation: LiveData<DeviceLocation>
         get() = _lastLocation
 
     private val _loading = MutableLiveData<Boolean>()
@@ -37,7 +37,7 @@ class MainViewModel(
         _tracking.value = _tracking.value != true
     }
 
-    fun fetchPictureForLocation(location: Location, searchRadiusKms: Float = SEARCH_DISTANCE_KMS) {
+    fun fetchPictureForLocation(location: DeviceLocation, searchRadiusKms: Float = SEARCH_DISTANCE_KMS) {
         _loading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val result =
@@ -56,13 +56,14 @@ class MainViewModel(
         }
     }
 
-    fun restorePreviousState(isTracking: Boolean) {
+    fun restorePreviousState(isTracking: Boolean, lastLocation: DeviceLocation?) {
         _tracking.value = isTracking
+        _lastLocation.value = lastLocation
     }
 
     private fun handleImageResult(
         result: ResultWrapper<Image>,
-        location: Location,
+        location: DeviceLocation,
         searchRadiusKms: Float
     ) {
         when (result) {
