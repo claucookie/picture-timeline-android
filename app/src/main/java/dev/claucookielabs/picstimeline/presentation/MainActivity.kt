@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
         setupDataBinding()
         bindLocationUpdatesService()
         mainViewModel.tracking.observe(this, Observer { isTracking ->
-            if (isTracking) mainViewModel.getPeriodicLocationUpdates()
-            else mainViewModel.stopLocationUpdates()
+            if (isTracking) locationUpdatesService?.getPeriodicLocationUpdates()
+            else locationUpdatesService?.stopLocationUpdates()
         })
     }
 

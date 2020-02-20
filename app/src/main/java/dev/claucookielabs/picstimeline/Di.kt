@@ -11,6 +11,7 @@ import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
 import dev.claucookielabs.picstimeline.domain.PicturesRepository
 import dev.claucookielabs.picstimeline.presentation.MainActivity
 import dev.claucookielabs.picstimeline.presentation.MainViewModel
+import dev.claucookielabs.picstimeline.services.LocationUpdatesService
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -24,7 +25,7 @@ fun App.initKoin() {
     startKoin {
         androidLogger(Level.DEBUG)
         androidContext(this@initKoin)
-        modules(listOf(scopedModules, dataModules))
+        modules(listOf(scopedModules, dataModules, locationModules))
     }
 }
 
@@ -34,11 +35,16 @@ private val dataModules = module {
     factory<FlickrApi> { FlickrApiFactory.create() }
 }
 
+private val locationModules = module {
+    single { Geocoder(androidContext(), Locale.getDefault()) }
+    single { FusedLocationProviderClient(androidContext()) }
+}
+
 private val scopedModules = module {
     scope(named<MainActivity>()) {
-        viewModel { MainViewModel(get(), get(), get()) }
-        scoped { FusedLocationProviderClient(androidContext()) }
+        viewModel { MainViewModel(get()) }
         scoped { GetPictureByLocation(get()) }
-        scoped { Geocoder(androidContext(), Locale.getDefault()) }
+    }
+    scope(named<LocationUpdatesService>()) {
     }
 }
