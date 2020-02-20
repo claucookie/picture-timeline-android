@@ -22,6 +22,11 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".services.LocationUpdatesService"
+            android:enabled="true"
+            android:exported="true" />
+
     </application>
 
 </manifest>
