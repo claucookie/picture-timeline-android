@@ -8,9 +8,9 @@ import retrofit2.HttpException
 import java.io.IOException
 
 class FlickrRepository(private val remoteDataSource: PicturesDataSource) : PicturesRepository {
-    override suspend fun getPictureByLocation(lat: Double, long: Double): ResultWrapper<Image> {
+    override suspend fun getPictureByLocation(lat: Double, long: Double, distance: Float): ResultWrapper<Image> {
         return try {
-            val pictureByLocation : ApiImage? = remoteDataSource.getPictureByLocation(lat, long)
+            val pictureByLocation : ApiImage? = remoteDataSource.getPictureByLocation(lat, long, distance)
             if (pictureByLocation == null) ResultWrapper.NoPicFoundError
             else ResultWrapper.Success(pictureByLocation.toDomain())
         } catch (throwable: IOException) {
@@ -24,5 +24,5 @@ class FlickrRepository(private val remoteDataSource: PicturesDataSource) : Pictu
 }
 
 private fun ApiImage.toDomain(): Image {
-    return Image(url = url)
+    return Image(url = url!!)
 }

@@ -10,7 +10,7 @@ import dev.claucookielabs.picstimeline.presentation.Image
 
 class ImagesAdapter : RecyclerView.Adapter<ImageViewHolder>() {
 
-    private var images: MutableList<Image> = mutableListOf()
+    private var images: List<Image> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -25,9 +25,9 @@ class ImagesAdapter : RecyclerView.Adapter<ImageViewHolder>() {
         holder.binding.image = images[position]
     }
 
-    fun addImage(image: Image) {
-        images.add(image)
-        notifyItemInserted(images.size - 1)
+    fun setImages(images: List<Image>) {
+        this.images = images
+        notifyDataSetChanged()
     }
 }
 

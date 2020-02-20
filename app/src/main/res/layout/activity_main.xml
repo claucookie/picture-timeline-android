@@ -10,26 +10,64 @@
             type="dev.claucookielabs.picstimeline.presentation.MainViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinator_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/pictures_rv"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:addImage="@{viewmodel.image}"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_view_picture" />
+            android:layout_height="match_parent">
 
-        <ProgressBar
+            <TextView
+                android:id="@+id/location_text"
+                android:layout_width="@dimen/match_constraint"
+                android:layout_height="@dimen/match_constraint"
+                android:gravity="left|center"
+                android:paddingLeft="@dimen/small_spacing"
+                app:displayLocation="@{viewmodel.lastLocation}"
+                app:layout_constraintEnd_toStartOf="@id/loading_view"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/loading_view"
+                tools:text="Current Location: XXXXX, XXXXX" />
+
+            <ProgressBar
+                android:id="@+id/loading_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/location_text"
+                app:layout_constraintBottom_toTopOf="@id/pictures_rv"
+                android:visibility="invisible"
+                tools:visibility="visible"
+                app:loading="@{viewmodel.loading}"
+                />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/pictures_rv"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/match_constraint"
+                app:loadImages="@{viewmodel.images}"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/location_text"
+                tools:listitem="@layout/item_view_picture" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/tracking_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tracking="@{viewmodel.tracking}" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:contentDescription="@string/start_tracking"
+            android:onClick="@{() -> viewmodel.toggleTracking()}"
+            android:src="@drawable/ic_record_animated"
+            app:backgroundTint="@color/colorPrimaryDark"
+            app:tracking="@{viewmodel.tracking}"/>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

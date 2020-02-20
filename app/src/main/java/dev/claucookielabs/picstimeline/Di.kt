@@ -1,5 +1,7 @@
 package dev.claucookielabs.picstimeline
 
+import android.location.Geocoder
+import com.google.android.gms.location.FusedLocationProviderClient
 import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApi
 import dev.claucookielabs.picstimeline.data.datasource.remote.FlickrApiFactory
 import dev.claucookielabs.picstimeline.data.datasource.remote.RemoteFlickerDataSource
@@ -16,6 +18,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.util.*
 
 fun App.initKoin() {
     startKoin {
@@ -33,7 +36,9 @@ private val dataModules = module {
 
 private val scopedModules = module {
     scope(named<MainActivity>()) {
-        viewModel { MainViewModel(get()) }
+        viewModel { MainViewModel(get(), get(), get()) }
+        scoped { FusedLocationProviderClient(androidContext()) }
         scoped { GetPictureByLocation(get()) }
+        scoped { Geocoder(androidContext(), Locale.getDefault()) }
     }
 }
