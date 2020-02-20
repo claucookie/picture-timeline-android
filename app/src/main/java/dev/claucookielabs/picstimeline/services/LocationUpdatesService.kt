@@ -11,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.BADGE_ICON_LARGE
+import androidx.core.app.NotificationCompat.FLAG_FOREGROUND_SERVICE
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -70,7 +71,7 @@ class LocationUpdatesService : Service() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i("Info", "Location updates service unBinded")
-        if (!configurationChanged && sharedPrefsDataSource.isTracking()) {
+        if (appWentToBackgroundWhileTracking()) {
             Log.i("Info", "Location updates service to foreground")
             startForeground(NOTIFICATION_ID, getNotification())
             sharedPrefsDataSource.saveActivityClosed(true)
@@ -107,6 +108,9 @@ class LocationUpdatesService : Service() {
         fusedLocationProvider.removeLocationUpdates(locationCallback)
         Log.i("Info", "Stopping location updates")
     }
+
+    private fun appWentToBackgroundWhileTracking() =
+        !configurationChanged && sharedPrefsDataSource.isTracking()
 
     private fun handleLocationResult(locationResult: LocationResult?) {
         locationResult?.lastLocation ?: return
@@ -213,7 +217,11 @@ class LocationUpdatesService : Service() {
     private fun isRunningInForeground(): Boolean {
         val manager =
             applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        return manager.runningAppProcesses?.firstOrNull { it.processName == BuildConfig.APPLICATION_ID } != null
+        val isRunningForeground =
+            manager.runningAppProcesses?.firstOrNull<ActivityManager.RunningAppProcessInfo> { it.processName == BuildConfig.APPLICATION_ID }
+                ?.importance == FLAG_FOREGROUND_SERVICE
+        Log.i("Info", "Service is in foreground = $isRunningForeground")
+        return isRunningForeground
     }
 
     /**
