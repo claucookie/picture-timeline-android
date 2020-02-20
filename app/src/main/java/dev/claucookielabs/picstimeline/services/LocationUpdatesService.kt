@@ -18,6 +18,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.util.PlatformVersion
 import com.google.android.gms.location.*
 import dev.claucookielabs.picstimeline.R
+import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.presentation.MainActivity
 import org.koin.android.ext.android.get
 
@@ -26,6 +27,7 @@ class LocationUpdatesService : Service() {
 
     private var lastLocation: Location? = null
     private val fusedLocationProvider: FusedLocationProviderClient = get()
+    private val sharedPrefsDataSource: SharedPrefsDataSource = get()
     private var configurationChanged = false
     private val geocoder: Geocoder = get()
     private val binder = LocalBinder()
@@ -58,9 +60,10 @@ class LocationUpdatesService : Service() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i("Info", "Location updates service unBinded")
-        if (!configurationChanged) {
+        if (!configurationChanged && sharedPrefsDataSource.isTracking()) {
             Log.i("Info", "Location updates service to foreground")
             startForeground(NOTIFICATION_ID, getNotification())
+            sharedPrefsDataSource.saveActivityClosed(true)
         }
         return true
     }
@@ -71,19 +74,26 @@ class LocationUpdatesService : Service() {
         configurationChanged = true
     }
 
+    override fun onLowMemory() {
+        sharedPrefsDataSource.clearAll()
+        super.onLowMemory()
+    }
+
     fun getPeriodicLocationUpdates() {
         startService(Intent(applicationContext, LocationUpdatesService::class.java))
+        sharedPrefsDataSource.saveTracking(true)
         val locationRequest = LocationRequest()
         locationRequest.fastestInterval = MIN_LOC_REQUEST_INTERVAL_MILLIS
         locationRequest.interval = MIN_LOC_REQUEST_INTERVAL_MILLIS
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        Log.i("Info", "Requesting location updates")
         fusedLocationProvider.requestLocationUpdates(
             locationRequest, locationCallback, Looper.getMainLooper()
         )
+        Log.i("Info", "Requesting location updates")
     }
 
     fun stopLocationUpdates() {
+        sharedPrefsDataSource.saveTracking(false)
         fusedLocationProvider.removeLocationUpdates(locationCallback)
         Log.i("Info", "Stopping location updates")
     }

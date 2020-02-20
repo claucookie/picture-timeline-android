@@ -56,6 +56,10 @@ class MainViewModel(
         }
     }
 
+    fun restorePreviousState(isTracking: Boolean) {
+        _tracking.value = isTracking
+    }
+
     private fun handleImageResult(
         result: ResultWrapper<Image>,
         location: Location,

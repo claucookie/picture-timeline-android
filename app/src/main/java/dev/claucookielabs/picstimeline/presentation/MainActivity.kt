@@ -10,22 +10,25 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.claucookielabs.picstimeline.R
+import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.databinding.ActivityMainBinding
 import dev.claucookielabs.picstimeline.presentation.ui.ImagesAdapter
 import dev.claucookielabs.picstimeline.services.LOCATION_BROADCAST
 import dev.claucookielabs.picstimeline.services.LOCATION_EXTRA
 import dev.claucookielabs.picstimeline.services.LocationUpdatesService
 import kotlinx.android.synthetic.main.activity_main.*
+import org.koin.android.ext.android.get
 import org.koin.androidx.scope.currentScope
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
 
     private val mainViewModel: MainViewModel by currentScope.viewModel(this)
-    private val locationPermissionsChecker = LocationPermissionsChecker()
-    private lateinit var binding: ActivityMainBinding
+    private val locationPermissionsChecker: LocationPermissionsChecker = get()
+    private val sharedPreferences: SharedPrefsDataSource = get()
     private var locationUpdatesService: LocationUpdatesService? = null
     private var isLocationUpdatesServiceBound = false
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +43,15 @@ class MainActivity : AppCompatActivity() {
             if (isTracking) locationUpdatesService?.getPeriodicLocationUpdates()
             else locationUpdatesService?.stopLocationUpdates()
         })
+    }
+
+    private fun restoreStateFromService() {
+        if (sharedPreferences.wasActivityClosed()) {
+            sharedPreferences.saveActivityClosed(false)
+            mainViewModel.restorePreviousState(
+                sharedPreferences.isTracking()
+            )
+        }
     }
 
     override fun onResume() {
@@ -115,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                 service as LocationUpdatesService.LocalBinder
             locationUpdatesService = binder.service
             isLocationUpdatesServiceBound = true
+            restoreStateFromService()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
