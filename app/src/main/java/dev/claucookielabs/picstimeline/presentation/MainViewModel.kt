@@ -40,8 +40,7 @@ class MainViewModel(
         get() = _loading
 
     fun toggleTracking() {
-        if (_tracking.value == true) stopTracking()
-        else startTracking()
+        _tracking.value = _tracking.value != true
     }
 
     private val locationCallback = object : LocationCallback() {
@@ -70,7 +69,7 @@ class MainViewModel(
         return currentLocation.distanceTo(_lastLocation.value) > MIN_WALKED_DISTANCE_METERS
     }
 
-    private fun getPeriodicLocationUpdates() {
+    fun getPeriodicLocationUpdates() {
         val locationRequest = LocationRequest()
         locationRequest.fastestInterval = MIN_LOC_REQUEST_INTERVAL_MILLIS
         locationRequest.interval = MIN_LOC_REQUEST_INTERVAL_MILLIS
@@ -85,7 +84,7 @@ class MainViewModel(
         }
     }
 
-    private fun stopLocationUpdates() {
+    fun stopLocationUpdates() {
         fusedLocationProvider.removeLocationUpdates(locationCallback)
         Log.i("Info", "Stopping location updates")
     }
@@ -142,16 +141,6 @@ class MainViewModel(
                 _tracking.value = false
             }
         }
-    }
-
-    private fun startTracking() {
-        _tracking.value = true
-        getPeriodicLocationUpdates()
-    }
-
-    private fun stopTracking() {
-        stopLocationUpdates()
-        _tracking.value = false
     }
 }
 
