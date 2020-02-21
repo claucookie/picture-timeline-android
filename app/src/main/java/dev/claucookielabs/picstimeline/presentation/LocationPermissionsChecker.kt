@@ -46,7 +46,7 @@ class LocationPermissionsChecker {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             coordinatorView.context.startActivity(intent)
-        }.show();
+        }.show()
     }
 
     private fun requestPermissionsPriorM(
@@ -64,11 +64,18 @@ class LocationPermissionsChecker {
         onPermissionsCheckedListener: MultiplePermissionsListener
     ) {
         Dexter.withActivity(activity)
-            .withPermissions(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
+            .withPermissions(getLocationPermissions())
             .withListener(onPermissionsCheckedListener)
             .check()
     }
+
+    private fun getLocationPermissions(): List<String> =
+        if (PlatformVersion.isAtLeastQ()) {
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            )
+        } else {
+            listOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
 }
