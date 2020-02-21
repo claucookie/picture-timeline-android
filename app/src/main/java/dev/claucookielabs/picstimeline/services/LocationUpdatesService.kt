@@ -38,6 +38,7 @@ class LocationUpdatesService : Service() {
     private val sharedPrefsDataSource: SharedPrefsDataSource = get()
     private val getPictureByLocation: GetPictureByLocation = get()
     private var configurationChanged = false
+    private var isInForeground = false
     private val geocoder: Geocoder = get()
     private val binder = LocalBinder()
     private val locationCallback = object : LocationCallback() {
@@ -55,6 +56,7 @@ class LocationUpdatesService : Service() {
         Log.i("Info", "Location updates service Binded")
         configurationChanged = false
         stopForeground(true)
+        isInForeground = false
         Log.i("Info", "Location updates service to background")
         return binder
     }
@@ -63,6 +65,7 @@ class LocationUpdatesService : Service() {
         Log.i("Info", "Location updates service reBinded")
         configurationChanged = false
         stopForeground(true)
+        isInForeground = false
         Log.i("Info", "Location updates service to background")
         super.onRebind(intent)
     }
@@ -72,6 +75,7 @@ class LocationUpdatesService : Service() {
         if (appWentToBackgroundWhileTracking()) {
             Log.i("Info", "Location updates service to foreground")
             startForeground(NOTIFICATION_ID, createNotification())
+            isInForeground = true
         }
         return true
     }
@@ -115,7 +119,17 @@ class LocationUpdatesService : Service() {
         if (userHasWalkedEnoughDistance(currentLocation)) {
             sharedPrefsDataSource.saveLastLocation(fetchAreaForLocation(currentLocation))
             fetchPictureForLocation(currentLocation)
+            if (isInForeground) {
+                updateNotificationWithCurrentLocation()
+            }
         }
+    }
+
+    private fun updateNotificationWithCurrentLocation() {
+        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
+            NOTIFICATION_ID,
+            createNotification()
+        )
     }
 
     private fun fetchPictureForLocation(location: DeviceLocation) {
