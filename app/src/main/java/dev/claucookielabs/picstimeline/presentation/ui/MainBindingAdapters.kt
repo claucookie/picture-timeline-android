@@ -1,19 +1,17 @@
 package dev.claucookielabs.picstimeline.presentation.ui
 
-import android.graphics.drawable.Animatable2
-import android.graphics.drawable.AnimatedVectorDrawable
+import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
-import android.location.Location
-import android.view.View
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.vectordrawable.graphics.drawable.Animatable2Compat
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dev.claucookielabs.picstimeline.R
+import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import dev.claucookielabs.picstimeline.presentation.Image
 
 @BindingAdapter("loadImages")
@@ -33,27 +31,27 @@ fun ImageView.loadImage(imageUrl: String) {
 
 @BindingAdapter("tracking")
 fun FloatingActionButton.setTrackingFeedback(isTracking: Boolean?) {
-    val animatedVectorDrawable = this.drawable as AnimatedVectorDrawable
-    animatedVectorDrawable.registerAnimationCallback(object : Animatable2.AnimationCallback() {
-        override fun onAnimationEnd(drawable: Drawable?) {
-            animatedVectorDrawable.start()
-        }
-    })
-    if (isTracking == true) animatedVectorDrawable.start()
-    else animatedVectorDrawable.clearAnimationCallbacks()
-}
+    AnimatedVectorDrawableCompat.registerAnimationCallback(
+        drawable,
+        object : Animatable2Compat.AnimationCallback() {
+            override fun onAnimationEnd(drawable: Drawable?) {
+                postOnAnimation {
+                    (drawable as Animatable).start()
+                }
+            }
+        })
 
-@BindingAdapter("loading")
-fun View.setLoading(isLoading: Boolean?) {
-    visibility = if (isLoading == true) VISIBLE else INVISIBLE
+    if (isTracking == true) (drawable as Animatable).start()
+    else AnimatedVectorDrawableCompat.clearAnimationCallbacks(drawable)
 }
 
 @BindingAdapter("displayLocation")
-fun TextView.displayLocation(location: Location?) {
+fun TextView.displayLocation(location: DeviceLocation?) {
     text =
-        if (location == null) context.getString(R.string.current_location_unavailable)
+        if (location?.area == null) context.getString(R.string.current_location_unavailable)
         else String.format(
             context.getString(R.string.current_location),
-            location.extras["area"]
+            location.area
         )
+
 }

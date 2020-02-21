@@ -12,12 +12,9 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop"
+        android:layout_height="wrap_content"
         app:loadImage="@{image.url}"
         tools:src="@tools:sample/avatars"
         android:layout_marginBottom="@dimen/small_spacing"
-        android:layout_marginStart="@dimen/small_spacing"
-        android:layout_marginEnd="@dimen/small_spacing"
         />
 </layout>
