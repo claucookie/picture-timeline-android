@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Timeline</string>
-    <string name="current_location">Current Location: %s</string>
-    <string name="current_location_loading">Current Location: Loading</string>
+    <string name="current_location">You can move around and collect pics while you walk! \nNow: %s</string>
+    <string name="current_location_notification">Now at: %s</string>
     <string name="current_location_unavailable">Click on the button to start tracking your location.</string>
     <string name="start_tracking">Start tracking</string>
     <string name="permission_denied_explanation">Location permission is required for this app to work. You can give permission in the Settings of the app.</string>

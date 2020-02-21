@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
+import java.util.*
 
 
 class LocationUpdatesService : Service() {
@@ -183,9 +184,11 @@ class LocationUpdatesService : Service() {
 
     private fun createNotification(): Notification {
         val title = "Timeline is tracking your location"
-        val content =
-            "Current location: ${sharedPrefsDataSource.getLastLocation()?.area
-                ?: "Unknown"}"
+        val content = String.format(
+            Locale.getDefault(),
+            getString(R.string.current_location_notification),
+            sharedPrefsDataSource.getLastLocation()?.area ?: "Unknown"
+        )
         val intent = Intent(this, MainActivity::class.java)
         val builder = NotificationCompat.Builder(this, createNotificationChannel())
             .setContentText(content)

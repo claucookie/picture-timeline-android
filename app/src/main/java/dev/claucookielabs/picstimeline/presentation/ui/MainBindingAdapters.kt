@@ -56,9 +56,10 @@ fun View.setLoading(isLoading: Boolean?) {
 @BindingAdapter("displayLocation")
 fun TextView.displayLocation(location: DeviceLocation?) {
     text =
-        if (location == null) context.getString(R.string.current_location_unavailable)
+        if (location?.area == null) context.getString(R.string.current_location_unavailable)
         else String.format(
             context.getString(R.string.current_location),
             location.area
         )
+
 }
