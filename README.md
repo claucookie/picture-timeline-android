@@ -13,9 +13,9 @@ The purpose of this implementation is to play around with the following concepts
 
 
 ## UI
-| The app in the fore ground | The app in the background      |
+| The app in the foreground | The app in the background      |
 | -------------------------- | ------------------------------ |
-| ![detail](./detail.png)    | ![background](./packages.png)  |
+| ![detail](./detail.png)    | ![background](./background.png)  |
 
 
 ## Architecture and Implementation approach
@@ -39,12 +39,8 @@ Due to simplicity, I save the state of the app in the shared preferences to allo
 
 The ViewModel has been implemented using `LiveData` and `Data Binding`.
 
-![class diagram](./main_activity_diagram.png)
+Note: If you would like to see a sample implementation with `MVP + CleanArch + Dagger2 + Feature modules`, feel free to go to this repo https://github.com/claucookie/android_lastfm_kotlin
 
-
---
-If you would like to see a sample implementation with `MVP + CleanArch + Dagger2 + Feature modules`, feel free to go to this repo https://github.com/claucookie/android_lastfm_kotlin
---
 ## Tools
 
 - Kotlin : https://kotlinlang.org/
