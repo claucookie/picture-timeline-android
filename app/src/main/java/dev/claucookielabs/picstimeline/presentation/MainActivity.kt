@@ -33,19 +33,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        locationPermissionsChecker.checkLocationPermissions(
-            this,
-            coordinator_view
-        ) {
-            binding.trackingFab.isEnabled = true
-            mainViewModel.fetchTimeline()
-        }
+
     }
 
     override fun onStart() {
         super.onStart()
         bindLocationUpdatesService()
         registerLocationUpdatesBroadcast()
+        checkLocationPermissions()
     }
 
     override fun onStop() {
@@ -81,6 +76,16 @@ class MainActivity : AppCompatActivity() {
             Context.BIND_AUTO_CREATE
         )
         Log.i("Info", "Bind location updates service")
+    }
+
+    private fun checkLocationPermissions() {
+        locationPermissionsChecker.checkLocationPermissions(
+            this,
+            coordinator_view
+        ) {
+            binding.trackingFab.isEnabled = true
+            mainViewModel.fetchTimeline()
+        }
     }
 
     private fun observeTrackingChanges() {
