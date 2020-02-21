@@ -4,13 +4,12 @@ import android.os.Parcelable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
-import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
+import dev.claucookielabs.picstimeline.domain.PicturesRepository
 import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import kotlinx.android.parcel.Parcelize
 
 class MainViewModel(
-    private val sharedPrefsDataSource: SharedPrefsDataSource
+    private val flickrRepository: PicturesRepository
 ) : ViewModel() {
     private val _images = MutableLiveData<MutableList<Image>>()
     val images: LiveData<MutableList<Image>>
@@ -33,9 +32,9 @@ class MainViewModel(
     }
 
     fun fetchTimeline() {
-        _tracking.value = sharedPrefsDataSource.isTracking()
-        _lastLocation.value = sharedPrefsDataSource.getLastLocation()
-        _images.value = sharedPrefsDataSource.getImages().toMutableList()
+        _tracking.value = flickrRepository.isTracking()
+        _lastLocation.value = flickrRepository.getLastSavedLocation()
+        _images.value = flickrRepository.getSavedImages().toMutableList()
     }
 }
 

@@ -34,7 +34,7 @@ fun App.initKoin() {
 }
 
 private val dataModules = module {
-    factory<PicturesRepository> { FlickrRepository(get()) }
+    factory<PicturesRepository> { FlickrRepository(get(), get()) }
     factory<PicturesDataSource> { RemoteFlickerDataSource(get()) }
     factory<FlickrApi> { FlickrApiFactory.create() }
     single<SharedPreferences> {
