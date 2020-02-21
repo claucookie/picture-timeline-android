@@ -22,30 +22,14 @@
             <TextView
                 android:id="@+id/location_text"
                 android:layout_width="@dimen/match_constraint"
-                android:layout_height="@dimen/match_constraint"
-                android:gravity="start|center"
-                android:paddingStart="@dimen/normal_spacing"
-                android:paddingEnd="@dimen/normal_spacing"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="@dimen/normal_spacing"
                 app:displayLocation="@{viewmodel.lastLocation}"
-                app:layout_constraintBottom_toBottomOf="@id/loading_view"
-                app:layout_constraintEnd_toStartOf="@id/loading_view"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Current Location: XXXXX, XXXXX" />
-
-            <ProgressBar
-                android:id="@+id/loading_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="@dimen/normal_spacing"
-                android:paddingEnd="@dimen/normal_spacing"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toTopOf="@id/pictures_rv"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/location_text"
-                app:layout_constraintTop_toTopOf="parent"
-                app:loading="@{viewmodel.loading}"
-                tools:visibility="visible" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/pictures_rv"

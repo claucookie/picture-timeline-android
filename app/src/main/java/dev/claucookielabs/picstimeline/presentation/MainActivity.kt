@@ -9,12 +9,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.claucookielabs.picstimeline.R
-import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.databinding.ActivityMainBinding
-import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import dev.claucookielabs.picstimeline.presentation.ui.ImagesAdapter
 import dev.claucookielabs.picstimeline.services.LOCATION_BROADCAST
-import dev.claucookielabs.picstimeline.services.LOCATION_EXTRA
 import dev.claucookielabs.picstimeline.services.LocationUpdatesService
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.get
@@ -25,7 +22,6 @@ class MainActivity : AppCompatActivity() {
 
     private val mainViewModel: MainViewModel by currentScope.viewModel(this)
     private val locationPermissionsChecker: LocationPermissionsChecker = get()
-    private val sharedPreferences: SharedPrefsDataSource = get()
     private var locationUpdatesService: LocationUpdatesService? = null
     private var isLocationUpdatesServiceBound = false
     private lateinit var binding: ActivityMainBinding
@@ -43,7 +39,10 @@ class MainActivity : AppCompatActivity() {
         locationPermissionsChecker.checkLocationPermissions(
             this,
             coordinator_view
-        ) { binding.trackingFab.isEnabled = true }
+        ) {
+            binding.trackingFab.isEnabled = true
+            mainViewModel.fetchTimeline()
+        }
     }
 
     override fun onDestroy() {
@@ -88,17 +87,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun restoreStateFromService() {
-        if (sharedPreferences.wasActivityClosed()) {
-            sharedPreferences.saveActivityClosed(false)
-            mainViewModel.restorePreviousState(
-                sharedPreferences.isTracking(),
-                sharedPreferences.getLastLocation(),
-                sharedPreferences.getImages().toMutableList()
-            )
-        }
-    }
-
     private fun registerLocationUpdatesBroadcast() {
         LocalBroadcastManager.getInstance(this).registerReceiver(
             locationBroadcastReceiver,
@@ -108,19 +96,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun unregisterLocationUpdatesBroadcast() {
-        Log.i("Info", "Unregistering Broadcast:  $LOCATION_BROADCAST")
         LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver)
+        Log.i("Info", "Unregistering Broadcast:  $LOCATION_BROADCAST")
     }
 
     private val locationBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.i("Info", "Broadcast received:  $LOCATION_BROADCAST")
-            intent?.getParcelableExtra<DeviceLocation>(LOCATION_EXTRA) ?: return
-
-            val location: DeviceLocation = intent.getParcelableExtra(LOCATION_EXTRA)!!
-            mainViewModel.fetchPictureForLocation(location)
+            mainViewModel.fetchTimeline()
         }
-
     }
 
     private val serviceConnection = object : ServiceConnection {
@@ -129,7 +113,6 @@ class MainActivity : AppCompatActivity() {
                 service as LocationUpdatesService.LocalBinder
             locationUpdatesService = binder.service
             isLocationUpdatesServiceBound = true
-            restoreStateFromService()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {

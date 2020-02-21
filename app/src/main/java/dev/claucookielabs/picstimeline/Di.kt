@@ -56,7 +56,7 @@ private val locationModules = module {
 
 private val scopedModules = module {
     scope(named<MainActivity>()) {
-        viewModel { MainViewModel(get(), get()) }
+        viewModel { MainViewModel(get()) }
         scoped { GetPictureByLocation(get()) }
     }
 }

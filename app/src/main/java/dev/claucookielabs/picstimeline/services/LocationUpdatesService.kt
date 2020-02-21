@@ -11,13 +11,11 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.BADGE_ICON_LARGE
-import androidx.core.app.NotificationCompat.FLAG_FOREGROUND_SERVICE
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.util.PlatformVersion
 import com.google.android.gms.location.*
-import dev.claucookielabs.picstimeline.BuildConfig
 import dev.claucookielabs.picstimeline.R
 import dev.claucookielabs.picstimeline.data.datasource.local.SharedPrefsDataSource
 import dev.claucookielabs.picstimeline.domain.GetPictureByLocation
@@ -117,11 +115,7 @@ class LocationUpdatesService : Service() {
         val currentLocation = locationResult.lastLocation.toDeviceLocation()
         if (userHasWalkedEnoughDistance(currentLocation)) {
             sharedPrefsDataSource.saveLastLocation(fetchAreaForLocation(currentLocation))
-            if (isRunningInForeground()) {
-                fetchPictureForLocation(currentLocation)
-            } else {
-                broadcastLocation(currentLocation)
-            }
+            fetchPictureForLocation(currentLocation)
         }
     }
 
@@ -139,17 +133,16 @@ class LocationUpdatesService : Service() {
 
     private fun handleImageResult(result: ResultWrapper<Image>) {
         if (result is ResultWrapper.Success) {
-            // We dont care about the errors cause the app is not open
             val images = sharedPrefsDataSource.getImages().toMutableList()
             images.add(0, result.value)
             sharedPrefsDataSource.saveImages(images)
             Log.i("Info", "Saving picture while service is in foreground")
+            broadcastLocation()
         }
     }
 
-    private fun broadcastLocation(currentLocation: DeviceLocation) {
+    private fun broadcastLocation() {
         val intent = Intent(LOCATION_BROADCAST)
-        intent.putExtra(LOCATION_EXTRA, currentLocation)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
         Log.i("Info", "Broadcast sent:  $LOCATION_BROADCAST")
     }
@@ -214,16 +207,6 @@ class LocationUpdatesService : Service() {
         return NOTIFICATION_CHANNEL_ID
     }
 
-    private fun isRunningInForeground(): Boolean {
-        val manager =
-            applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val isRunningForeground =
-            manager.runningAppProcesses?.firstOrNull<ActivityManager.RunningAppProcessInfo> { it.processName == BuildConfig.APPLICATION_ID }
-                ?.importance == FLAG_FOREGROUND_SERVICE
-        Log.i("Info", "Service is in foreground = $isRunningForeground")
-        return isRunningForeground
-    }
-
     /**
      * Class used for the client Binder.  Since this service runs in the same process as its
      * clients, we don't need to deal with IPC.
@@ -242,6 +225,5 @@ private const val MIN_LOC_REQUEST_INTERVAL_MILLIS = 60000L // 60 sec
 private const val NOTIFICATION_CHANNEL_ID = "location"
 private const val NOTIFICATION_CHANNEL_NAME = "Location Notifications"
 private const val NOTIFICATION_ID: Int = 398422093
-const val LOCATION_BROADCAST = "location_broadcast"
-const val LOCATION_EXTRA = "location"
+const val LOCATION_BROADCAST = "location_updated_broadcast"
 
