@@ -2,9 +2,6 @@ package dev.claucookielabs.picstimeline.presentation.ui
 
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
-import android.view.View
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -46,11 +43,6 @@ fun FloatingActionButton.setTrackingFeedback(isTracking: Boolean?) {
 
     if (isTracking == true) (drawable as Animatable).start()
     else AnimatedVectorDrawableCompat.clearAnimationCallbacks(drawable)
-}
-
-@BindingAdapter("loading")
-fun View.setLoading(isLoading: Boolean?) {
-    visibility = if (isLoading == true) VISIBLE else INVISIBLE
 }
 
 @BindingAdapter("displayLocation")
