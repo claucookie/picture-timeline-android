@@ -24,16 +24,17 @@ import dev.claucookielabs.picstimeline.domain.ResultWrapper
 import dev.claucookielabs.picstimeline.domain.model.DeviceLocation
 import dev.claucookielabs.picstimeline.domain.model.toAndroidLocation
 import dev.claucookielabs.picstimeline.domain.model.toDeviceLocation
-import dev.claucookielabs.picstimeline.presentation.Image
 import dev.claucookielabs.picstimeline.presentation.MainActivity
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 
-class LocationUpdatesService : Service() {
+class LocationUpdatesService : Service(), CoroutineScope {
 
     private val fusedLocationProvider: FusedLocationProviderClient = get()
     private val sharedPrefsDataSource: SharedPrefsDataSource = get()
@@ -52,6 +53,10 @@ class LocationUpdatesService : Service() {
             handleLocationResult(locationResult)
         }
     }
+    private lateinit var job: Job
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + job
 
     override fun onBind(intent: Intent?): IBinder? {
         Log.i("Info", "Location updates service Binded")
@@ -87,9 +92,15 @@ class LocationUpdatesService : Service() {
         configurationChanged = true
     }
 
-    override fun onLowMemory() {
+    override fun onCreate() {
+        super.onCreate()
+        job = Job()
+    }
+
+    override fun onDestroy() {
+        job.cancel()
         sharedPrefsDataSource.clearAll()
-        super.onLowMemory()
+        super.onDestroy()
     }
 
     fun getPeriodicLocationUpdates() {
@@ -118,40 +129,35 @@ class LocationUpdatesService : Service() {
         locationResult?.lastLocation ?: return
         val currentLocation = locationResult.lastLocation.toDeviceLocation()
         if (userHasWalkedEnoughDistance(currentLocation)) {
-            sharedPrefsDataSource.saveLastLocation(fetchAreaForLocation(currentLocation))
+            fetchAreaNameForLocation(currentLocation)
             fetchPictureForLocation(currentLocation)
-            if (isInForeground) {
-                updateNotificationWithCurrentLocation()
-            }
         }
     }
 
     private fun updateNotificationWithCurrentLocation() {
-        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
-            NOTIFICATION_ID,
-            createNotification()
-        )
+        if (isInForeground) {
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
+                NOTIFICATION_ID,
+                createNotification()
+            )
+        }
     }
 
     private fun fetchPictureForLocation(location: DeviceLocation) {
-        GlobalScope.launch(Dispatchers.IO) {
+        launch(job) {
             val result = getPictureByLocation.execute(
                 (GetPictureRequest(
                     location.latitude,
                     location.longitude
                 ))
             )
-            handleImageResult(result)
-        }
-    }
-
-    private fun handleImageResult(result: ResultWrapper<Image>) {
-        if (result is ResultWrapper.Success) {
-            val images = sharedPrefsDataSource.getImages().toMutableList()
-            images.add(0, result.value)
-            sharedPrefsDataSource.saveImages(images)
-            Log.i("Info", "Saving picture while service is in foreground")
-            broadcastLocation()
+            if (result is ResultWrapper.Success) {
+                val images = sharedPrefsDataSource.getImages().toMutableList()
+                images.add(0, result.value)
+                sharedPrefsDataSource.saveImages(images)
+                Log.i("Info", "Saving picture while service is in foreground")
+                broadcastLocation()
+            }
         }
     }
 
@@ -170,20 +176,24 @@ class LocationUpdatesService : Service() {
     }
 
 
-    private fun fetchAreaForLocation(currentLocation: DeviceLocation): DeviceLocation {
-        val addresses = geocoder.getFromLocation(
-            currentLocation.latitude,
-            currentLocation.longitude,
-            MAX_GEOCODER_RESULTS
-        )
-        val firstAddress = addresses.first()
-        val areaName = firstAddress?.getAddressLine(0) ?: firstAddress?.adminArea ?: ""
-        currentLocation.area = areaName
-        return currentLocation
+    private fun fetchAreaNameForLocation(currentLocation: DeviceLocation) {
+        launch(job) {
+            val addresses = geocoder.getFromLocation(
+                currentLocation.latitude,
+                currentLocation.longitude,
+                MAX_GEOCODER_RESULTS
+            )
+            val firstAddress = addresses.first()
+            val areaName = firstAddress?.getAddressLine(0) ?: firstAddress?.adminArea ?: ""
+            currentLocation.area = areaName
+            sharedPrefsDataSource.saveLastLocation(currentLocation)
+            Log.i("Info", "New picture at $areaName")
+            updateNotificationWithCurrentLocation()
+        }
     }
 
     private fun createNotification(): Notification {
-        val title = "Timeline is tracking your location"
+        val title = getString(R.string.tracking_your_location)
         val content = String.format(
             Locale.getDefault(),
             getString(R.string.current_location_notification),
