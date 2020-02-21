@@ -15,12 +15,6 @@ class SharedPrefsDataSource(
 
     fun isTracking(): Boolean = sharedPreferences.getBoolean("isTracking", false)
 
-    fun saveActivityClosed(isTracking: Boolean) {
-        sharedPreferences.edit().putBoolean("isActivityClosed", isTracking).apply()
-    }
-
-    fun wasActivityClosed(): Boolean = sharedPreferences.getBoolean("isActivityClosed", false)
-
     fun clearAll() {
         sharedPreferences.edit().clear().commit()
     }

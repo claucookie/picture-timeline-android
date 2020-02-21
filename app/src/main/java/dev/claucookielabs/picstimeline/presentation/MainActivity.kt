@@ -29,9 +29,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupDataBinding()
-        bindLocationUpdatesService()
-        registerLocationUpdatesBroadcast()
-        observeTrackingChanges()
     }
 
     override fun onResume() {
@@ -45,10 +42,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
+    override fun onStart() {
+        super.onStart()
+        bindLocationUpdatesService()
+        registerLocationUpdatesBroadcast()
+    }
+
+    override fun onStop() {
         unregisterLocationUpdatesBroadcast()
         unbindLocationUpdatesService()
-        super.onDestroy()
+        super.onStop()
     }
 
     private fun setupDataBinding() {
@@ -113,6 +116,7 @@ class MainActivity : AppCompatActivity() {
                 service as LocationUpdatesService.LocalBinder
             locationUpdatesService = binder.service
             isLocationUpdatesServiceBound = true
+            observeTrackingChanges()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {

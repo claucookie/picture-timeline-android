@@ -71,8 +71,7 @@ class LocationUpdatesService : Service() {
         Log.i("Info", "Location updates service unBinded")
         if (appWentToBackgroundWhileTracking()) {
             Log.i("Info", "Location updates service to foreground")
-            startForeground(NOTIFICATION_ID, getNotification())
-            sharedPrefsDataSource.saveActivityClosed(true)
+            startForeground(NOTIFICATION_ID, createNotification())
         }
         return true
     }
@@ -168,7 +167,7 @@ class LocationUpdatesService : Service() {
         return currentLocation
     }
 
-    private fun getNotification(): Notification {
+    private fun createNotification(): Notification {
         val title = "Timeline is tracking your location"
         val content =
             "Current location: ${sharedPrefsDataSource.getLastLocation()?.area
@@ -181,7 +180,7 @@ class LocationUpdatesService : Service() {
             .setColor(ContextCompat.getColor(this, R.color.colorPrimaryLight))
             .setColorized(true)
             .setOngoing(true)
-            .setPriority(NotificationManagerCompat.IMPORTANCE_HIGH)
+            .setPriority(NotificationManagerCompat.IMPORTANCE_LOW)
             .setSmallIcon(R.drawable.ic_android_notif)
             .setTicker(content)
             .setContentIntent(PendingIntent.getActivity(this, 0, intent, 0))
