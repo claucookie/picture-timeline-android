@@ -176,7 +176,7 @@ class LocationUpdatesService : Service() {
             MAX_GEOCODER_RESULTS
         )
         val firstAddress = addresses.first()
-        val areaName = firstAddress?.thoroughfare ?: firstAddress.postalCode
+        val areaName = firstAddress?.getAddressLine(0) ?: firstAddress?.adminArea ?: ""
         currentLocation.area = areaName
         return currentLocation
     }
@@ -209,7 +209,7 @@ class LocationUpdatesService : Service() {
                 NotificationChannel(
                     NOTIFICATION_CHANNEL_ID,
                     NOTIFICATION_CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH
+                    NotificationManager.IMPORTANCE_LOW
                 )
             channel.lightColor = R.color.colorPrimaryLight
             channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
