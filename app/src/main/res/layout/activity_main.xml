@@ -15,34 +15,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/location_text"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/colorPrimaryLight"
                 android:gravity="center"
                 android:padding="@dimen/normal_spacing"
                 app:displayLocation="@{viewmodel.lastLocation}"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Current Location: XXXXX, XXXXX" />
+                tools:text="Current Location: XXXXX, XXXXX"
+                app:layout_scrollFlags="scroll|enterAlways"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/pictures_rv"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/match_constraint"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/location_text"
-                app:loadImages="@{viewmodel.images}"
-                tools:listitem="@layout/item_view_picture" />
+        </com.google.android.material.appbar.AppBarLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pictures_rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+            app:loadImages="@{viewmodel.images}"
+            tools:listitem="@layout/item_view_picture" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/tracking_fab"
@@ -52,8 +49,8 @@
             android:layout_margin="16dp"
             android:contentDescription="@string/start_tracking"
             android:onClick="@{() -> viewmodel.toggleTracking()}"
-            app:srcCompat="@drawable/ic_record_animated"
             app:backgroundTint="@color/colorPrimaryDark"
+            app:srcCompat="@drawable/ic_record_animated"
             app:tracking="@{viewmodel.tracking}" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
